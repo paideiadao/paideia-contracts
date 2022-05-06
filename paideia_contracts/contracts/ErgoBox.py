@@ -10,6 +10,7 @@ class ErgoBox:
         self.tokens = tokens
         self.registers = registers
 
+    @property
     def outBox(self) -> OutBox:
         return self.appKit.buildOutBox(self.value,self.tokens,self.registers,self.contract)
 

@@ -5,7 +5,7 @@ from sigmastate.Values import ErgoTree
 
 class ErgoContractBase:
     def __init__(self, appKit: ErgoAppKit, script: str = None, mapping: Dict[str,ErgoValue] = {}, ergoTree: ErgoTree = None) -> None:
-        self._appKit = appKit
+        self.appKit = appKit
         if script is not None:
             with open(script) as f:
                 self._ergoScript = f.read()
@@ -23,4 +23,11 @@ class ErgoContractBase:
     @contract.setter
     def contract(self, contract: ErgoContract) -> None:
         self._contract = contract
+
+    @property
+    def appKit(self) -> ErgoAppKit:
+        return self._appKit
+    @appKit.setter
+    def appKit(self, appKit: ErgoAppKit) -> None:
+        self._appKit = appKit
 
