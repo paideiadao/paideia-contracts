@@ -1,0 +1,30 @@
+{
+    //Registers:
+    //4: 0: stakeTime
+    //5: user ergo tree
+    //assets:
+    //stake key
+    //tokens to be staked
+
+    val stakeStateNFT = _stakeStateNFT
+    val stakingIncentiveContract = _stakingIncentiveContract
+
+    if (SELF.value > ) {
+        sigmaProp(
+            allOf(Coll(
+                INPUTS(0).tokens(0)._1 == stakeStateNFT,
+                OUTPUTS(1).tokens(1)._2 == INPUTS(1).tokens(1)._2 + SELF.tokens(1)._2,
+                OUTPUTS(1).tokens(1)._1 == SELF.tokens(1)._1,
+                //Stake key
+                OUTPUTS(2).propositionBytes == INPUTS(1).propositionBytes,
+                OUTPUTS(2).tokens(0)._1 == OUTPUTS(1).R5[Coll[Byte]].get,
+                OUTPUTS(2).tokens(0)._2 == 1L,
+                blake2b256(OUTPUTS(3).propositionBytes) == stakingIncentiveContract,
+                OUTPUTS(3).value == 100000000,
+                OUTPUTS(4).value == 2000000,
+                OUTPUTS(5).value == 2000000,
+                OUTPUTS.size == 6
+            ))
+        )
+    }
+}

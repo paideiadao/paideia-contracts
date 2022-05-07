@@ -1,5 +1,8 @@
+from datetime import datetime
 from hashlib import blake2b
 import os
+from time import time
+from typing import List
 from ergo_python_appkit.appkit import ErgoAppKit, ErgoValueT
 from paideia_contracts.contracts.ErgoBox import ErgoBox
 from paideia_contracts.contracts.ErgoContractBase import ErgoContractBase
@@ -133,6 +136,7 @@ class StakePoolContract(ErgoContractBase):
         self.nft = stakePoolNFT
         self.stakedTokenId = stakedTokenID
         self.stakeStateNFT = stakeStateNFT
+        self.stakePoolKey = stakePoolKey
         mapping = {
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue()
         }
@@ -143,7 +147,7 @@ class StakePoolContract(ErgoContractBase):
         if not tokens[0].getId().toString() == self.nft:
             return False
         registers = inBox.getRegisters()
-        if len(registers) > 1:
+        if len(registers) != 2:
             return False
         if len(registers[0].getValue()) != 1:
             return False
@@ -226,6 +230,126 @@ class EmissionContract(ErgoContractBase):
     @stakedTokenId.setter
     def stakedTokenId(self, stakedTokenId: str) -> None:
         self._stakedTokenId = stakedTokenId
+
+class StakingIncentiveContract(ErgoContractBase):
+    def __init__(self, appKit: ErgoAppKit, stakeStateNFT: str, stakeTokenID: str, emissionNFT: str, stakePoolKey: str, stakedTokenID: str) -> None:
+        self.stakeStateNFT = stakeStateNFT
+        self.stakeTokenID = stakeTokenID
+        self.emissionNFT = emissionNFT
+        self.stakePoolKey = stakePoolKey
+        self.stakedTokenID = stakedTokenID
+        mapping = {
+            "_stakeStateNFT": ErgoAppKit.ergoValue(stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_stakeTokenID": ErgoAppKit.ergoValue(stakeTokenID, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_emissionNFT": ErgoAppKit.ergoValue(emissionNFT, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_stakePoolKey": ErgoAppKit.ergoValue(stakePoolKey, ErgoValueT.ByteArrayFromHex).getValue()
+        }
+        super().__init__(appKit,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakingIncentive.es"),mapping=mapping)
+
+    def FromStakePoolContract(stakePoolContract: StakePoolContract):
+        return StakingIncentiveContract(
+            appKit=stakePoolContract.appKit,
+            stakeStateNFT=stakePoolContract.stakeStateNFT,
+            stakeTokenID=stakePoolContract.stakeTokenId,
+            emissionNFT=stakePoolContract.emissionNFT,
+            stakePoolKey=stakePoolContract.stakePoolKey,
+            stakedTokenID=stakePoolContract.stakedTokenId
+        )
+
+    @property
+    def stakeStateNFT(self) -> str:
+        return self._stakeStateNFT
+    @stakeStateNFT.setter
+    def stakeStateNFT(self, stakeStateNFT: str) -> None:
+        self._stakeStateNFT = stakeStateNFT
+
+    @property
+    def stakeTokenID(self) -> str:
+        return self._stakeTokenID
+    @stakeTokenID.setter
+    def stakeTokenID(self, stakeTokenID: str) -> None:
+        self._stakeTokenID = stakeTokenID
+
+    @property
+    def stakedTokenID(self) -> str:
+        return self._stakedTokenID
+    @stakedTokenID.setter
+    def stakedTokenID(self, stakedTokenID: str) -> None:
+        self._stakedTokenID = stakedTokenID
+
+    @property
+    def emissionNFT(self) -> str:
+        return self._emissionNFT
+    @emissionNFT.setter
+    def emissionNFT(self, emissionNFT: str) -> None:
+        self._emissionNFT = emissionNFT
+
+    @property
+    def stakePoolKey(self) -> str:
+        return self._stakePoolKey
+    @stakePoolKey.setter
+    def stakePoolKey(self, stakePoolKey: str) -> None:
+        self._stakePoolKey = stakePoolKey
+
+class StakeProxyContract(ErgoContractBase):
+    def __init__(self, appKit: ErgoAppKit, stakeStateNFT: str, stakingIncentiveContract: StakingIncentiveContract) -> None:
+        self.stakeStateNFT = stakeStateNFT
+        self.stakingIncentiveContract = stakingIncentiveContract
+
+        mapping = {
+            "_stakeStateNFT": ErgoAppKit.ergoValue(stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+        }
+        super().__init__(appKit,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakeProxy.es"),mapping=mapping)
+
+    def FromStakingIncentiveContract(stakingIncentiveContract: StakingIncentiveContract):
+        return StakeProxyContract(
+            appKit=stakingIncentiveContract.appKit,
+            stakeStateNFT=stakingIncentiveContract.stakeStateNFT,
+            stakingIncentiveContract=stakingIncentiveContract
+        )
+
+    def validateInputBox(self, inBox: InputBox) -> bool:
+        registers = inBox.getRegisters()
+        if len(registers) != 2:
+            return False
+        return super().validateInputBox(inBox)
+
+    @property
+    def stakeStateNFT(self) -> str:
+        return self._stakeStateNFT
+    @stakeStateNFT.setter
+    def stakeStateNFT(self, stakeStateNFT: str) -> None:
+        self._stakeStateNFT = stakeStateNFT
+
+    @property
+    def stakingIncentiveContract(self) -> StakingIncentiveContract:
+        return self._stakingIncentiveContract
+    @stakingIncentiveContract.setter
+    def stakingIncentiveContract(self, stakingIncentiveContract: StakingIncentiveContract) -> None:
+        self._stakingIncentiveContract = stakingIncentiveContract
+
+class AddStakeProxyContract(StakeProxyContract):
+    def __init__(self, appKit: ErgoAppKit, stakeStateNFT: str, stakingIncentiveContract: StakingIncentiveContract) -> None:
+        self.stakeStateNFT = stakeStateNFT
+        self.stakingIncentiveContract = stakingIncentiveContract
+
+        mapping = {
+            "_stakeStateNFT": ErgoAppKit.ergoValue(stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+        }
+        super(ErgoContractBase).__init__(appKit,script=os.path.join(os.path.dirname(__file__),"ergoscript/addStakeProxy.es"),mapping=mapping)
+
+class UnstakeProxyContract(StakeProxyContract):
+    def __init__(self, appKit: ErgoAppKit, stakeStateNFT: str, stakingIncentiveContract: StakingIncentiveContract) -> None:
+        self.stakeStateNFT = stakeStateNFT
+        self.stakingIncentiveContract = stakingIncentiveContract
+
+        mapping = {
+            "_stakeStateNFT": ErgoAppKit.ergoValue(stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+        }
+        super(ErgoContractBase).__init__(appKit,script=os.path.join(os.path.dirname(__file__),"ergoscript/unstakeProxy.es"),mapping=mapping)
 
 class EmissionBox(ErgoBox):
     def __init__(self, appKit: ErgoAppKit, emissionContract: EmissionContract, emissionRemaining: int, amountStaked: int, checkpoint: int, stakers: int, emissionAmount: int) -> None:
@@ -503,19 +627,21 @@ class StakeStateBox(ErgoBox):
         self._stakeStateContract = stakeStateContract
 
 class StakePoolBox(ErgoBox):
-    def __init__(self, appKit: ErgoAppKit, stakePoolContract: StakePoolContract, emissionAmount: int, remaining: int) -> None:
+    def __init__(self, appKit: ErgoAppKit, stakePoolContract: StakePoolContract, emissionAmount: int, remaining: int, stakePoolKey: str) -> None:
         self.stakePoolContract = stakePoolContract
         tokens = {self.stakePoolContract.nft: 1, self.stakePoolContract.stakedTokenId: remaining}
         registers = [
             ErgoAppKit.ergoValue([
                 emissionAmount
-            ],ErgoValueT.LongArray)
+            ],ErgoValueT.LongArray),
+            ErgoAppKit.ergoValue(stakePoolKey, ErgoValueT.ByteArrayFromHex)
         ]  
 
         super().__init__(appKit,int(1e6),stakePoolContract.contract,tokens,registers)
 
         self._remaining = remaining
         self._emissionAmount = emissionAmount
+        self._stakePoolKey = stakePoolKey
 
     @staticmethod
     def fromInputBox(inputBox: InputBox, stakePoolContact: StakePoolContract):
@@ -532,7 +658,8 @@ class StakePoolBox(ErgoBox):
         self.registers = [
             ErgoAppKit.ergoValue([
                 self.emissionAmount
-            ],ErgoValueT.LongArray)
+            ],ErgoValueT.LongArray),
+            ErgoAppKit.ergoValue(self.stakePoolKey, ErgoValueT.ByteArrayFromHex)
         ]  
 
     @property
@@ -541,6 +668,14 @@ class StakePoolBox(ErgoBox):
     @emissionAmount.setter
     def emissionAmount(self, emissionAmount: int) -> None:
         self._emissionAmount = emissionAmount
+        self.updateRegisters()
+
+    @property
+    def stakePoolKey(self) -> str:
+        return self._stakePoolKey
+    @stakePoolKey.setter
+    def stakePoolKey(self, stakePoolKey: str) -> None:
+        self._stakePoolKey = stakePoolKey
         self.updateRegisters()
 
     @property
@@ -558,12 +693,179 @@ class StakePoolBox(ErgoBox):
     def stakePoolContract(self, stakePoolContract: StakePoolContract) -> None:
         self._stakePoolContract = stakePoolContract
 
+class StakingIncentiveBox(ErgoBox):
+    def __init__(self, appKit: ErgoAppKit, stakingIncentiveContract: StakingIncentiveContract, value: int) -> None:
+        self.stakingIncentiveContract = stakingIncentiveContract
+        self.value = value
+        super().__init__(appKit,value,stakingIncentiveContract.contract)
+
+
+    @staticmethod
+    def fromInputBox(inputBox: InputBox, stakingIncentiveContract: StakingIncentiveContract):
+        value = inputBox.getValue()
+        return StakePoolBox(
+            appKit=stakingIncentiveContract.appKit,
+            stakingIncentiveContract=stakingIncentiveContract,
+            value=value)    
+
+    @property
+    def value(self) -> int:
+        return self._value
+    @value.setter
+    def value(self, value: int) -> None:
+        self._value = value
+
+    @property
+    def stakingIncentiveContract(self) -> StakingIncentiveContract:
+        return self._stakingIncentiveContract
+    @stakingIncentiveContract.setter
+    def stakingIncentiveContract(self, stakingIncentiveContract: StakingIncentiveContract) -> None:
+        self._stakingIncentiveContract = stakingIncentiveContract
+
+class StakeProxyBox(ErgoBox):
+    def __init__(self, appKit: ErgoAppKit, stakeProxyContract: StakeProxyContract, amountToStake: int, userErgoTree: str, stakeTime: int) -> None:
+        self.stakeProxyContract = stakeProxyContract
+        tokens = {self.stakeProxyContract.stakingIncentiveContract.stakedTokenID: amountToStake}
+        registers = [
+            ErgoAppKit.ergoValue([
+                stakeTime
+            ],ErgoValueT.LongArray),
+            ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
+        ]  
+
+        super().__init__(appKit,int(1e6),stakeProxyContract.contract,tokens,registers)
+
+        self._amountToStake = amountToStake
+        self._userErgoTree = userErgoTree
+        self._stakeTime = stakeTime
+
+    @staticmethod
+    def fromInputBox(inputBox: InputBox, stakeProxyContract: StakeProxyContract):
+        registers = inputBox.getRegisters()
+        userErgoTree = registers[1].toHex()[4:]
+        stakeTime = int(registers[0].apply(0))
+        amountToStake = int(inputBox.getTokens()[0].getValue())
+        return StakeProxyBox(
+            appKit=stakeProxyContract.appKit,
+            stakeProxyContract=stakeProxyContract,
+            amountToStake=amountToStake,
+            userErgoTree=userErgoTree,
+            stakeTime=stakeTime)   
+
+    def updateRegisters(self):
+        self.registers = [
+            ErgoAppKit.ergoValue([
+                self.stakeTime
+            ],ErgoValueT.LongArray),
+            ErgoAppKit.ergoValue(self.userErgoTree, ErgoValueT.ByteArrayFromHex)
+        ]  
+
+    @property
+    def amountToStake(self) -> int:
+        return self._amountToStake
+    @amountToStake.setter
+    def amountToStake(self, amountToStake: int) -> None:
+        self._amountToStake = amountToStake
+        self.tokens[self.stakeProxyContract.stakingIncentiveContract.stakedTokenID] = amountToStake
+
+    @property
+    def stakeTime(self) -> int:
+        return self._stakeTime
+    @stakeTime.setter
+    def stakeTime(self, stakeTime: int) -> None:
+        self._stakeTime = stakeTime
+        self.updateRegisters()
+
+    @property
+    def userErgoTree(self) -> str:
+        return self._userErgoTree
+    @userErgoTree.setter
+    def userErgoTree(self, userErgoTree: str) -> None:
+        self._userErgoTree = userErgoTree
+        self.updateRegisters()
+
+    @property
+    def stakeProxyContract(self) -> StakeProxyContract:
+        return self._stakeProxyContract
+    @stakeProxyContract.setter
+    def stakeProxyContract(self, stakeProxyContract: StakeProxyContract) -> None:
+        self._stakeProxyContract = stakeProxyContract
+
+class AddStakeProxyBox(ErgoBox):
+    def __init__(self, appKit: ErgoAppKit, addStakeProxyContract: AddStakeProxyContract, amountToStake: int, userErgoTree: str, stakeBox: StakeBox) -> None:
+        self.addStakeProxyContract = addStakeProxyContract
+        tokens = {stakeBox.stakeKey: 1, self.addStakeProxyContract.stakingIncentiveContract.stakedTokenID: amountToStake}
+        registers = [
+            ErgoAppKit.ergoValue([
+                int(0)
+            ],ErgoValueT.LongArray),
+            ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
+        ]  
+
+        super().__init__(appKit,int(1e6),addStakeProxyContract.contract,tokens,registers)
+
+        self._amountToStake = amountToStake
+        self._userErgoTree = userErgoTree
+        self._stakeBox = stakeBox
+
+    @staticmethod
+    def fromInputBox(inputBox: InputBox, stakeBox: StakeBox, addStakeProxyContract: StakeProxyContract):
+        registers = inputBox.getRegisters()
+        userErgoTree = registers[1].toHex()[4:]
+        amountToStake = int(inputBox.getTokens()[0].getValue())
+        return AddStakeProxyBox(
+            appKit=addStakeProxyContract.appKit,
+            addStakeProxyContract=addStakeProxyContract,
+            amountToStake=amountToStake,
+            userErgoTree=userErgoTree,
+            stakeBox=stakeBox)   
+
+    def updateRegisters(self):
+        self.registers = [
+            ErgoAppKit.ergoValue([
+                self.stakeTime
+            ],ErgoValueT.LongArray),
+            ErgoAppKit.ergoValue(self.userErgoTree, ErgoValueT.ByteArrayFromHex)
+        ]  
+
+    @property
+    def amountToStake(self) -> int:
+        return self._amountToStake
+    @amountToStake.setter
+    def amountToStake(self, amountToStake: int) -> None:
+        self._amountToStake = amountToStake
+        self.tokens[self.stakeProxyContract.stakingIncentiveContract.stakedTokenID] = amountToStake
+
+    @property
+    def stakeTime(self) -> int:
+        return self._stakeTime
+    @stakeTime.setter
+    def stakeTime(self, stakeTime: int) -> None:
+        self._stakeTime = stakeTime
+        self.updateRegisters()
+
+    @property
+    def userErgoTree(self) -> str:
+        return self._userErgoTree
+    @userErgoTree.setter
+    def userErgoTree(self, userErgoTree: str) -> None:
+        self._userErgoTree = userErgoTree
+        self.updateRegisters()
+
+    @property
+    def stakeProxyContract(self) -> StakeProxyContract:
+        return self._stakeProxyContract
+    @stakeProxyContract.setter
+    def stakeProxyContract(self, stakeProxyContract: StakeProxyContract) -> None:
+        self._stakeProxyContract = stakeProxyContract
+
 class EmitTransaction(ErgoTransaction):
     def __init__(self, 
             appKit: ErgoAppKit, 
             stakeStateInput: InputBox, 
             stakePoolInput: InputBox, 
             emissionInput: InputBox,
+            feeInput: List[InputBox],
             stakeStateContract: StakeStateContract,
             stakePoolContract: StakePoolContract,
             emissionContract: EmissionContract,
@@ -592,9 +894,153 @@ class EmitTransaction(ErgoTransaction):
         stakeStateBox.amountStaked = stakeStateBox.amountStaked + stakePoolBox.emissionAmount - dust
         stakeStateBox.checkpoint = stakeStateBox.checkpoint + 1
         stakeStateBox.checkpointTime = stakeStateBox.checkpointTime + stakeStateBox.cycleDuration
-        self.inputs = [stakeStateInput,stakePoolInput,emissionInput]
+        self.inputs = [stakeStateInput,stakePoolInput,emissionInput] + feeInput
         self.outputs = [stakeStateBox.outBox,stakePoolBox.outBox,emissionBox.outBox]
         self.fee = int(1e6)
         self.changeAddress = changeAddress
 
-    
+class CompoundTransaction(ErgoTransaction):
+    def __init__(self, 
+            appKit: ErgoAppKit,  
+            emissionInput: InputBox,
+            stakeInputs: List[InputBox],
+            feeInput: List[InputBox],
+            emissionContract: EmissionContract,
+            stakeContract: StakeContract,
+            changeAddress: str) -> None:
+        super().__init__(appKit)
+        if not emissionContract.validateInputBox(emissionInput):
+            raise InvalidInputBoxException("Emission input box does not match contract")
+        for stakeInput in stakeInputs:
+            if not stakeContract.validateInputBox(stakeInput):
+                raise InvalidInputBoxException("Stake input box does not match contract")
+        emissionBox = EmissionBox.fromInputBox(emissionInput, emissionContract)
+        stakeBoxes = []
+        stakeRewards = 0
+        for stakeInput in stakeInputs:
+            box = StakeBox.fromInputBox(stakeInput,stakeContract)
+            if box.checkpoint != emissionBox.checkpoint:
+                raise InvalidTransactionConditionsException("Stake box not on same checkpoint as emission box")
+            box.checkpoint = box.checkpoint + 1
+            reward = int(box.amountStaked * emissionBox.emissionAmount / emissionBox.amountStaked)
+            stakeRewards += reward
+            box.amountStaked += reward
+            stakeBoxes.append(box.outBox)
+
+        emissionBox.emissionRemaining -= stakeRewards
+        emissionBox.stakers -= len(stakeBoxes)
+
+        self.inputs = [emissionInput] + stakeInputs + feeInput
+        self.outputs = [emissionBox.outBox] + stakeBoxes
+        self.fee = int(1e6)
+        self.changeAddress = changeAddress
+
+class StakeTransaction(ErgoTransaction):
+    def __init__(self, 
+            appKit: ErgoAppKit,
+            stakeAmount: int,
+            stakedTokenName: str,
+            stakedTokenDecimals: int,
+            stakeStateInput: InputBox,
+            feeInput: List[InputBox],
+            stakeStateContract: StakeStateContract,
+            stakeContract: StakeContract,
+            changeAddress: str) -> None:
+        super().__init__(appKit)
+        if not stakeStateContract.validateInputBox(stakeStateInput):
+            raise InvalidInputBoxException("Stake state input box does not match contract")
+        stakeStateBox = StakeStateBox.fromInputBox(stakeStateInput, stakeStateContract)
+        stakeStateBox.amountStaked += stakeAmount
+        stakeStateBox.stakers += 1
+
+        userOutput = appKit.mintToken(
+            value=int(1e7),
+            tokenId=stakeStateInput.getId().toString(),
+            tokenName=f'{stakedTokenName} Stake Key',
+            tokenDesc=f'{{"originalAmountStaked": {stakeAmount*10**(-1*stakedTokenDecimals)}, "stakeTime": "{datetime.now()}"}}',
+            mintAmount=1,
+            decimals=0,
+            contract=appKit.contractFromTree(feeInput[0].getErgoTree())
+        )
+
+        stakeBox = StakeBox(
+            appKit=self.appKit,
+            stakeContract=stakeContract,
+            checkpoint=stakeStateBox.checkpoint,
+            stakeTime=int(time()*1000),
+            amountStaked=stakeAmount,
+            stakeKey=stakeStateInput.getId().toString()
+        )
+
+        self.inputs = [stakeStateInput] + feeInput
+        self.outputs = [stakeStateBox.outBox, stakeBox.outBox, userOutput]
+        self.fee = int(1e6)
+        self.changeAddress = changeAddress
+
+class AddStakeTransaction(ErgoTransaction):
+    def __init__(self, 
+            appKit: ErgoAppKit,
+            addStakeAmount: int,
+            stakeStateInput: InputBox,
+            stakeInput: InputBox,
+            feeInput: List[InputBox],
+            stakeStateContract: StakeStateContract,
+            stakeContract: StakeContract,
+            changeAddress: str) -> None:
+        super().__init__(appKit)
+        if not stakeStateContract.validateInputBox(stakeStateInput):
+            raise InvalidInputBoxException("Stake state input box does not match contract")
+        if not StakeContract.validateInputBox(stakeInput):
+            raise InvalidInputBoxException("Stake input box does not match contract")
+        stakeStateBox = StakeStateBox.fromInputBox(stakeStateInput, stakeStateContract)
+        stakeStateBox.amountStaked += addStakeAmount
+
+        stakeBox = StakeBox.fromInputBox(stakeInput, stakeContract)
+
+        stakeBox.amountStaked += addStakeAmount
+
+        userOutput = ErgoBox(
+            appKit=appKit,
+            value=int(1e7),
+            contract=appKit.contractFromTree(feeInput[0].getErgoTree()),
+            tokens={stakeBox.stakeKey: 1}
+        )
+
+        self.inputs = [stakeStateInput] + feeInput
+        self.outputs = [stakeStateBox.outBox, stakeBox.outBox, userOutput.outBox]
+        self.fee = int(1e6)
+        self.changeAddress = changeAddress
+
+class UnstakeTransaction(ErgoTransaction):
+    def __init__(self, 
+            appKit: ErgoAppKit,
+            UnstakeAmount: int,
+            stakeStateInput: InputBox,
+            stakeInput: InputBox,
+            feeInput: List[InputBox],
+            stakeStateContract: StakeStateContract,
+            stakeContract: StakeContract,
+            changeAddress: str) -> None:
+        super().__init__(appKit)
+        if not stakeStateContract.validateInputBox(stakeStateInput):
+            raise InvalidInputBoxException("Stake state input box does not match contract")
+        if not StakeContract.validateInputBox(stakeInput):
+            raise InvalidInputBoxException("Stake input box does not match contract")
+        stakeStateBox = StakeStateBox.fromInputBox(stakeStateInput, stakeStateContract)
+        stakeStateBox.amountStaked += addStakeAmount
+
+        stakeBox = StakeBox.fromInputBox(stakeInput, stakeContract)
+
+        stakeBox.amountStaked += addStakeAmount
+
+        userOutput = ErgoBox(
+            appKit=appKit,
+            value=int(1e7),
+            contract=appKit.contractFromTree(feeInput[0].getErgoTree()),
+            tokens={stakeBox.stakeKey: 1}
+        )
+
+        self.inputs = [stakeStateInput] + feeInput
+        self.outputs = [stakeStateBox.outBox, stakeBox.outBox, userOutput.outBox]
+        self.fee = int(1e6)
+        self.changeAddress = changeAddress

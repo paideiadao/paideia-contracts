@@ -2,6 +2,7 @@
     // Stake Pool
     // Registers:
     // 4:0 Long: Emission amount per cycle
+    // 5: Coll[Byte]: Stake pool key
     // Assets:
     // 0: Stake Pool NFT
     // 1: Remaining Staked Tokens for future distribution (ErgoPad)
@@ -25,6 +26,10 @@
             OUTPUTS(0).R4[Coll[Long]].get(0) == INPUTS(0).R4[Coll[Long]].get(0) + SELF.R4[Coll[Long]].get(0) - dust
         )))
     } else {
+    if (INPUTS(0).id == SELF.id) { //Remove funds
+        sigmaProp(OUTPUTS(1).tokens(0)._1 == SELF.R5[Coll[Byte]].get)
+    } else {
         sigmaProp(false)
+    }
     }
 }
