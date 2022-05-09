@@ -94,38 +94,37 @@
         )))
   } else {
   if (SELF.R4[Coll[Long]].get(0) > OUTPUTS(0).R4[Coll[Long]].get(0) && INPUTS.size >= 3 && INPUTS(1).tokens.size > 1) { // Unstake
-      sigmaProp(true)
       // // Stake State (SELF), Stake, UnstakeProxy => Stake State, User Wallet, Stake (optional for partial unstake)
-      // val unstaked = SELF.R4[Coll[Long]].get(0) - OUTPUTS(0).R4[Coll[Long]].get(0)
-      // val stakeKey = INPUTS(2).tokens(0)._1 == INPUTS(1).R5[Coll[Byte]].get
-      // val remaining = INPUTS(1).tokens(1)._2 - unstaked
+      val unstaked = SELF.R4[Coll[Long]].get(0) - OUTPUTS(0).R4[Coll[Long]].get(0)
+      val stakeKey = INPUTS(2).tokens(0)._1 == INPUTS(1).R5[Coll[Byte]].get
+      val remaining = INPUTS(1).tokens(1)._2 - unstaked
 
-      // sigmaProp(allOf(Coll(
-      //     selfReplication,
-      //     // stakeKey,
-      //     // INPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1),
-      //     // //Stake State
-      //     // OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)-unstaked,
-      //     // OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
-      //     // OUTPUTS(0).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - (if (remaining == 0L) 1L else 0L),
-      //     // OUTPUTS(0).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3),
-      //     // OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2 + (if (remaining == 0L) 1L else 0L),
-      //     // OUTPUTS(1).tokens(0)._1 == INPUTS(1).tokens(1)._1,
-      //     // OUTPUTS(1).tokens(0)._2 == unstaked,
-      //     // if (remaining > 0L) allOf(Coll(
-      //     //   OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get,
-      //     //   //Stake output
-      //     //   OUTPUTS(2).value == INPUTS(1).value,
-      //     //   OUTPUTS(2).tokens(0)._1 == INPUTS(1).tokens(0)._1,
-      //     //   OUTPUTS(2).tokens(0)._2 == INPUTS(1).tokens(0)._2,
-      //     //   OUTPUTS(2).tokens(1)._1 == INPUTS(1).tokens(1)._1,
-      //     //   OUTPUTS(2).tokens(1)._2 == remaining,
-      //     //   remaining >= minimumStake,
-      //     //   OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(1).R4[Coll[Long]].get(0),
-      //     //   OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(1).R4[Coll[Long]].get(1)
-      //     // ))
-      //     // else true
-      // )))
+      sigmaProp(allOf(Coll(
+          selfReplication,
+          stakeKey,
+          INPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1),
+          //Stake State
+          OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0)-unstaked,
+          OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
+          OUTPUTS(0).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - (if (remaining == 0L) 1L else 0L),
+          OUTPUTS(0).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3),
+          OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2 + (if (remaining == 0L) 1L else 0L),
+          OUTPUTS(1).tokens(0)._1 == INPUTS(1).tokens(1)._1,
+          OUTPUTS(1).tokens(0)._2 == unstaked,
+          if (remaining > 0L) allOf(Coll(
+            OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get,
+            //Stake output
+            OUTPUTS(2).value == INPUTS(1).value,
+            OUTPUTS(2).tokens(0)._1 == INPUTS(1).tokens(0)._1,
+            OUTPUTS(2).tokens(0)._2 == INPUTS(1).tokens(0)._2,
+            OUTPUTS(2).tokens(1)._1 == INPUTS(1).tokens(1)._1,
+            OUTPUTS(2).tokens(1)._2 == remaining,
+            remaining >= minimumStake,
+            OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(1).R4[Coll[Long]].get(0),
+            OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(1).R4[Coll[Long]].get(1)
+          ))
+          else true
+      )))
   } else {
       sigmaProp(false)
   }

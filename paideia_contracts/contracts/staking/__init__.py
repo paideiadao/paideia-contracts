@@ -706,7 +706,9 @@ class UnstakeProxyBox(ErgoBox):
             ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
         ]
 
-        super().__init__(appKit,int(1e7)+unstakeProxyContract.config.proxyToStakingIncentive+unstakeProxyContract.config.proxyExecutorReward+unstakeProxyContract.config.proxyMinerFee,unstakeProxyContract.contract,tokens,registers)
+        valueAdjustment = int(0) if stakeBox.amountStaked > amountToUnstake else int(1e6)
+
+        super().__init__(appKit,int(1e7)+unstakeProxyContract.config.proxyToStakingIncentive+unstakeProxyContract.config.proxyExecutorReward+unstakeProxyContract.config.proxyMinerFee-valueAdjustment,unstakeProxyContract.contract,tokens,registers)
 
         self._amountToUnstake = amountToUnstake
         self._userErgoTree = userErgoTree
