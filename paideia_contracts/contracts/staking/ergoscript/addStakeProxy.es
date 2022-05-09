@@ -15,7 +15,6 @@
     if (INPUTS(0).tokens(0)._1 == stakeStateNFT) {
         sigmaProp(
             allOf(Coll(
-                INPUTS(0).tokens(0)._1 == stakeStateNFT,
                 OUTPUTS(1).tokens(1)._2 == INPUTS(1).tokens(1)._2 + SELF.tokens(1)._2,
                 OUTPUTS(1).tokens(1)._1 == SELF.tokens(1)._1,
                 //Stake key

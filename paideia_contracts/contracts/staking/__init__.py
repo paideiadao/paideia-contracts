@@ -150,7 +150,7 @@ class AddStakeProxyContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
         mapping = {
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue(),
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract._ergoTree.bytesHex()), digest_size=32).digest(), ErgoValueT.ByteArray).getValue(),
             "_toStakingIncentive": ErgoAppKit.ergoValue(stakingConfig.proxyAddToStakingIncentive, ErgoValueT.Long).getValue(),
             "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
             "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
@@ -167,7 +167,7 @@ class UnstakeProxyContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
         mapping = {
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue(),
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract._ergoTree.bytesHex()), digest_size=32).digest(), ErgoValueT.ByteArray).getValue(),
             "_toStakingIncentive": ErgoAppKit.ergoValue(stakingConfig.proxyToStakingIncentive, ErgoValueT.Long).getValue(),
             "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
             "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
@@ -648,7 +648,7 @@ class AddStakeProxyBox(ErgoBox):
     def fromInputBox(inputBox: InputBox, stakeBox: StakeBox, addStakeProxyContract: AddStakeProxyContract):
         registers = inputBox.getRegisters()
         userErgoTree = registers[1].toHex()[4:]
-        amountToStake = int(inputBox.getTokens()[0].getValue())
+        amountToStake = int(inputBox.getTokens()[1].getValue())
         return AddStakeProxyBox(
             appKit=addStakeProxyContract.appKit,
             addStakeProxyContract=addStakeProxyContract,
