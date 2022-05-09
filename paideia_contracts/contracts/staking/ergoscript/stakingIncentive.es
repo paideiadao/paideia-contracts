@@ -48,7 +48,7 @@
             }
             else
             {
-                sigmaProp(OUTPUTS(0).tokens(0)._1 = stakePoolKey)
+                sigmaProp(OUTPUTS(0).tokens(0)._1 == stakePoolKey)
             }
         }
     }

@@ -28,7 +28,7 @@
             selfReplication.tokens(1)._2 == SELF.tokens(1)._2 + (INPUTS(0).R4[Coll[Long]].get(3) * SELF.tokens(1)._2 / INPUTS(0).R4[Coll[Long]].get(0))
         )))
     } else {
-    if (INPUTS(1).id == SELF.id) {{ // Unstake
+    if (INPUTS(1).id == SELF.id) { // Unstake
         if (OUTPUTS(0).R4[Coll[Long]].get(0) < INPUTS(0).R4[Coll[Long]].get(0)) { //Unstake
             val selfReplication = if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
                                     if (OUTPUTS(2).R5[Coll[Byte]].isDefined)

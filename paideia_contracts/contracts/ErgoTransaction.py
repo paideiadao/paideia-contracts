@@ -9,6 +9,8 @@ class ErgoTransaction:
     def __init__(self, appKit: ErgoAppKit) -> None:
         self.appKit = appKit
         self.preHeader = self.appKit.preHeader()
+        self.tokensToBurn = None
+        self.dataInputs = None
 
     @property
     def unsignedTx(self) -> UnsignedTransaction:

@@ -1,6 +1,6 @@
 from typing import Dict, List
 from ergo_python_appkit.appkit import ErgoAppKit, ErgoValueT
-from org.ergoplatform.appkit import ErgoContract, ErgoValue, OutBox
+from org.ergoplatform.appkit import ErgoContract, ErgoValue, InputBox, OutBox
 
 class ErgoBox:
     def __init__(self, appKit: ErgoAppKit, value: int, contract: ErgoContract, tokens: Dict[str, int] = None, registers: List[ErgoValue] = None) -> None:
@@ -13,6 +13,9 @@ class ErgoBox:
     @property
     def outBox(self) -> OutBox:
         return self.appKit.buildOutBox(self.value,self.tokens,self.registers,self.contract)
+
+    def inputBox(self, txId: str = "ce552663312afc2379a91f803c93e2b10b424f176fbc930055c10def2fd88a5d", index: int = 0) -> InputBox:
+        return self.appKit.buildOutBox(self.value,self.tokens,self.registers,self.contract).convertToInputWith(txId,index)
 
     @property
     def appKit(self) -> ErgoAppKit:
