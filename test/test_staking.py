@@ -1,7 +1,7 @@
 from time import time
 import traceback
 from ergo_python_appkit.appkit import ErgoAppKit
-from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig
+from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig, UnstakeProxyBox, UnstakeTransaction
 
 class TestStaking:
     appKit = ErgoAppKit("http://ergolui.com:9053","mainnet","https://api.ergoplatform.com/")
@@ -165,6 +165,47 @@ class TestStaking:
                 stakeStateInput=stakeStateInput,
                 stakeInput=stakeInput,
                 addStakeProxyInput=addStakeProxyInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            ).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
+    def test_partial_unstake(self):
+        stakeStateInput = StakeStateBox(
+            appKit=self.appKit,
+            stakeStateContract=self.config.stakeStateContract,
+            checkpoint=1,
+            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 86400001),
+            amountStaked=10000000,
+            cycleDuration=86400000,
+            stakers=10
+            ).inputBox()
+        stakeInput = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=1,
+            stakeTime=99,
+            amountStaked=200000,
+            stakeKey=self.config.stakePoolKey
+        ).inputBox()
+        unstakeProxyInput = UnstakeProxyBox(
+            appKit=self.appKit,
+            unstakeProxyContract=self.config.unstakeProxyContract,
+            amountToUnstake=100000,
+            userErgoTree=self.appKit.contractFromAddress(self.txOperator).getErgoTree().bytesHex(),
+            stakeBox=StakeBox.fromInputBox(stakeInput, self.config.stakeContract)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = UnstakeTransaction(
+                stakeStateInput=stakeStateInput,
+                stakeInput=stakeInput,
+                unstakeProxyInput=unstakeProxyInput,
                 stakingConfig=self.config,
                 address=self.txOperator
             ).unsignedTx

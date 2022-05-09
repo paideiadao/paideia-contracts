@@ -706,7 +706,7 @@ class UnstakeProxyBox(ErgoBox):
             ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
         ]
 
-        super().__init__(appKit,int(11e6)+unstakeProxyContract.config.proxyToStakingIncentive+unstakeProxyContract.config.proxyExecutorReward+unstakeProxyContract.config.proxyMinerFee,unstakeProxyContract.contract,tokens,registers)
+        super().__init__(appKit,int(1e7)+unstakeProxyContract.config.proxyToStakingIncentive+unstakeProxyContract.config.proxyExecutorReward+unstakeProxyContract.config.proxyMinerFee,unstakeProxyContract.contract,tokens,registers)
 
         self._amountToUnstake = amountToUnstake
         self._userErgoTree = userErgoTree
@@ -720,7 +720,7 @@ class UnstakeProxyBox(ErgoBox):
         return UnstakeProxyBox(
             appKit=unstakeProxyContract.appKit,
             unstakeProxyContract=unstakeProxyContract,
-            amountToStake=amountToUnstake,
+            amountToUnstake=amountToUnstake,
             userErgoTree=userErgoTree,
             stakeBox=stakeBox)   
 
@@ -960,7 +960,7 @@ class UnstakeTransaction(ErgoTransaction):
         if stakeBox.amountStaked <= 0:
             self.outputs = [stakeStateBox.outBox, userOutput.outBox, stakingIncentiveBox.outBox, txExecutorBox.outBox]
         else:
-            self.outputs = [stakeStateBox.outBox, stakeBox.outBox, userOutput.outBox, stakingIncentiveBox.outBox, txExecutorBox.outBox]
+            self.outputs = [stakeStateBox.outBox, userOutput.outBox, stakeBox.outBox, stakingIncentiveBox.outBox, txExecutorBox.outBox]
         self.fee = int(2e6)
         self.changeAddress = address
 
