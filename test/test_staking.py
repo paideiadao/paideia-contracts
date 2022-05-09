@@ -1,7 +1,7 @@
 from time import time
 import traceback
 from ergo_python_appkit.appkit import ErgoAppKit
-from paideia_contracts.contracts.staking import EmissionBox, EmitTransaction, StakePoolBox, StakeStateBox, StakingIncentiveBox, PaideiaTestConfig
+from paideia_contracts.contracts.staking import CompoundTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeStateBox, StakingIncentiveBox, PaideiaTestConfig
 
 class TestStaking:
     appKit = ErgoAppKit("http://ergolui.com:9053","mainnet","https://api.ergoplatform.com/")
@@ -44,6 +44,53 @@ class TestStaking:
                 stakeStateInput=stakeStateInput,
                 stakePoolInput=stakePoolInput,
                 emissionInput=emissionInput,
+                stakingIncentiveInput=stakingIncentiveInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            ).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
+    def test_compound(self):
+        emissionInput = EmissionBox(
+            appKit=self.appKit,
+            emissionContract=self.config.emissionContract,
+            emissionRemaining=293000,
+            amountStaked=9569595,
+            checkpoint=0,
+            stakers=10,
+            emissionAmount=293000
+        ).inputBox()
+        stakeBox1 = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=0,
+            stakeTime=0,
+            amountStaked=10000,
+            stakeKey=self.config.stakedTokenId #this value doesnt matter here
+        ).inputBox()
+        stakeBox2 = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=0,
+            stakeTime=0,
+            amountStaked=33333,
+            stakeKey=self.config.stakeTokenId #this value doesnt matter here
+        ).inputBox()
+        stakingIncentiveInput = StakingIncentiveBox(
+            appKit=self.appKit,
+            stakingIncentiveContract=self.config.stakingIncentiveContract,
+            value=int(1e9)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = CompoundTransaction(
+                emissionInput=emissionInput,
+                stakeInputs=[stakeBox1,stakeBox2],
                 stakingIncentiveInput=stakingIncentiveInput,
                 stakingConfig=self.config,
                 address=self.txOperator

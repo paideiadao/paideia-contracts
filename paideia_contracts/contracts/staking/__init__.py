@@ -787,7 +787,7 @@ class CompoundTransaction(ErgoTransaction):
             if not stakingConfig.stakeContract.validateInputBox(stakeInput):
                 raise InvalidInputBoxException("Stake input box does not match contract")
         emissionBox = EmissionBox.fromInputBox(emissionInput, stakingConfig.emissionContract)
-        stakingIncentiveBox = StakingIncentiveBox.fromInputBox(stakingIncentiveBox, stakingConfig.stakingIncentiveContract)
+        stakingIncentiveBox = StakingIncentiveBox.fromInputBox(stakingIncentiveInput, stakingConfig.stakingIncentiveContract)
         stakeBoxes = []
         stakeRewards = 0
         for stakeInput in stakeInputs:
@@ -806,7 +806,7 @@ class CompoundTransaction(ErgoTransaction):
         minerFee = int(1000000 + 500000 * len(stakeBoxes))
         stakingIncentiveBox.value -= txValue
         txExecutorBox = ErgoBox(stakingConfig.appKit,txValue-minerFee,stakingConfig.appKit.contractFromAddress(address))
-        self.inputs = [emissionInput] + stakeInputs + stakingIncentiveInput
+        self.inputs = [emissionInput] + stakeInputs + [stakingIncentiveInput]
         self.outputs = [emissionBox.outBox] + stakeBoxes + [stakingIncentiveBox.outBox, txExecutorBox.outBox]
         self.fee = minerFee
         self.changeAddress = address
