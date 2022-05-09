@@ -8,6 +8,9 @@
 
     val stakeStateNFT = _stakeStateNFT
     val stakingIncentiveContract = _stakingIncentiveContract
+    val toStakingIncentive = _toStakingIncentive
+    val executorReward = _executorReward
+    val minerFee = _minerFee
 
     if (INPUTS(0).tokens(0)._1 == stakeStateNFT) {
         sigmaProp(
@@ -20,9 +23,9 @@
                 OUTPUTS(2).tokens(0)._1 == OUTPUTS(1).R5[Coll[Byte]].get,
                 OUTPUTS(2).tokens(0)._2 == 1L,
                 blake2b256(OUTPUTS(3).propositionBytes) == stakingIncentiveContract,
-                OUTPUTS(3).value == 10000000,
-                OUTPUTS(4).value == 2000000,
-                OUTPUTS(5).value == 2000000,
+                OUTPUTS(3).value == toStakingIncentive,
+                OUTPUTS(4).value == executorReward,
+                OUTPUTS(5).value == minerFee,
                 OUTPUTS.size == 6
             ))
         )

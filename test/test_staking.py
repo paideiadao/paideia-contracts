@@ -1,7 +1,7 @@
 from time import time
 import traceback
 from ergo_python_appkit.appkit import ErgoAppKit
-from paideia_contracts.contracts.staking import CompoundTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeStateBox, StakingIncentiveBox, PaideiaTestConfig
+from paideia_contracts.contracts.staking import CompoundTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig
 
 class TestStaking:
     appKit = ErgoAppKit("http://ergolui.com:9053","mainnet","https://api.ergoplatform.com/")
@@ -70,7 +70,7 @@ class TestStaking:
             stakeContract=self.config.stakeContract,
             checkpoint=0,
             stakeTime=0,
-            amountStaked=10000,
+            amountStaked=100000,
             stakeKey=self.config.stakedTokenId #this value doesnt matter here
         ).inputBox()
         stakeBox2 = StakeBox(
@@ -78,7 +78,7 @@ class TestStaking:
             stakeContract=self.config.stakeContract,
             checkpoint=0,
             stakeTime=0,
-            amountStaked=33333,
+            amountStaked=333333,
             stakeKey=self.config.stakeTokenId #this value doesnt matter here
         ).inputBox()
         stakingIncentiveInput = StakingIncentiveBox(
@@ -92,6 +92,38 @@ class TestStaking:
                 emissionInput=emissionInput,
                 stakeInputs=[stakeBox1,stakeBox2],
                 stakingIncentiveInput=stakingIncentiveInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            ).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
+    def test_stake(self):
+        stakeStateInput = StakeStateBox(
+            appKit=self.appKit,
+            stakeStateContract=self.config.stakeStateContract,
+            checkpoint=1,
+            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 86400001),
+            amountStaked=10000000,
+            cycleDuration=86400000,
+            stakers=10
+            ).inputBox()
+        stakeProxyInput = StakeProxyBox(
+            appKit=self.appKit,
+            stakeProxyContract=self.config.stakeProxyContract,
+            amountToStake=200000,
+            userErgoTree=self.appKit.contractFromAddress(self.txOperator).getErgoTree().bytesHex(),
+            stakeTime=int(time()*1000)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = StakeTransaction(
+                stakeStateInput=stakeStateInput,
+                stakeProxyInput=stakeProxyInput,
                 stakingConfig=self.config,
                 address=self.txOperator
             ).unsignedTx

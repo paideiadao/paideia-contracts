@@ -16,6 +16,11 @@ from paideia_contracts.contracts.ErgoTransaction import ErgoTransaction
 class InvalidInputBoxException(Exception): pass
 class InvalidTransactionConditionsException(Exception): pass
 
+@dataclass
+class AssetsRequired:
+    nErgRequired: int
+    tokensRequired: Dict[str, int]
+
 class PaideiaStakingContract(ErgoContractBase):
     def __init__(self, stakingConfig, script: str = None, mapping: Dict[str, ErgoValue] = {}, ergoTree: ErgoTree = None) -> None:
         self.config = stakingConfig
@@ -53,7 +58,7 @@ class StakeStateContract(PaideiaStakingContract):
             "_stakedTokenID": ErgoAppKit.ergoValue(stakingConfig.stakedTokenId, ErgoValueT.ByteArrayFromHex).getValue(),
             "_stakePoolNFT": ErgoAppKit.ergoValue(stakingConfig.stakePoolNFT, ErgoValueT.ByteArrayFromHex).getValue(),
             "_emissionNFT": ErgoAppKit.ergoValue(stakingConfig.emissionNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakeContractHash": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakeContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+            "_stakeContractHash": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakeContract._ergoTree.bytesHex()), digest_size=32).digest(), ErgoValueT.ByteArray).getValue()
         }
         super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakeState.es"),mapping=mapping)
 
@@ -112,7 +117,15 @@ class StakingIncentiveContract(PaideiaStakingContract):
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
             "_stakeTokenID": ErgoAppKit.ergoValue(stakingConfig.stakeTokenId, ErgoValueT.ByteArrayFromHex).getValue(),
             "_emissionNFT": ErgoAppKit.ergoValue(stakingConfig.emissionNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakePoolKey": ErgoAppKit.ergoValue(stakingConfig.stakePoolKey, ErgoValueT.ByteArrayFromHex).getValue()
+            "_stakePoolKey": ErgoAppKit.ergoValue(stakingConfig.stakePoolKey, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_dustCollectionReward": ErgoAppKit.ergoValue(stakingConfig.dustCollectionReward, ErgoValueT.Long).getValue(),
+            "_dustCollectionMinerFee": ErgoAppKit.ergoValue(stakingConfig.dustCollectionMinerFee, ErgoValueT.Long).getValue(),
+            "_emitReward": ErgoAppKit.ergoValue(stakingConfig.emitReward, ErgoValueT.Long).getValue(),
+            "_emitMinerFee": ErgoAppKit.ergoValue(stakingConfig.emitMinerFee, ErgoValueT.Long).getValue(),
+            "_baseCompoundReward": ErgoAppKit.ergoValue(stakingConfig.baseCompoundReward, ErgoValueT.Long).getValue(),
+            "_baseCompoundMinerFee": ErgoAppKit.ergoValue(stakingConfig.baseCompoundMinerFee, ErgoValueT.Long).getValue(),
+            "_variableCompoundReward": ErgoAppKit.ergoValue(stakingConfig.variableCompoundReward, ErgoValueT.Long).getValue(),
+            "_variableCompoundMinerFee": ErgoAppKit.ergoValue(stakingConfig.variableCompoundMinerFee, ErgoValueT.Long).getValue()
         }
         super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakingIncentive.es"),mapping=mapping)
 
@@ -120,7 +133,10 @@ class StakeProxyContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
         mapping = {
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract._ergoTree.bytesHex()), digest_size=32).digest(), ErgoValueT.ByteArray).getValue(),
+            "_toStakingIncentive": ErgoAppKit.ergoValue(stakingConfig.proxyToStakingIncentive, ErgoValueT.Long).getValue(),
+            "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
+            "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
         }
         super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakeProxy.es"),mapping=mapping)
 
@@ -134,7 +150,10 @@ class AddStakeProxyContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
         mapping = {
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue(),
+            "_toStakingIncentive": ErgoAppKit.ergoValue(stakingConfig.proxyAddToStakingIncentive, ErgoValueT.Long).getValue(),
+            "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
+            "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
         }
         super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/addStakeProxy.es"),mapping=mapping)
 
@@ -148,7 +167,10 @@ class UnstakeProxyContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
         mapping = {
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
-            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue()
+            "_stakingIncentiveContract": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakingIncentiveContract.contract.getErgoTree().bytesHex())).digest(), ErgoValueT.ByteArray).getValue(),
+            "_toStakingIncentive": ErgoAppKit.ergoValue(stakingConfig.proxyToStakingIncentive, ErgoValueT.Long).getValue(),
+            "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
+            "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
         }
         super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/unstakeProxy.es"),mapping=mapping)
     
@@ -260,6 +282,8 @@ class EmissionBox(ErgoBox):
 
 class StakeBox(ErgoBox):
     def __init__(self, appKit: ErgoAppKit, stakeContract: StakeContract, checkpoint: int, stakeTime: int, amountStaked: int, stakeKey: str) -> None:
+        if amountStaked < 10*10**stakeContract.config.stakedTokenDecimals:
+            raise InvalidInputBoxException("Stake box needs more than 10 tokens")
         self.stakeContract = stakeContract
         tokens = {self.stakeContract.config.stakeTokenId: 1, self.stakeContract.config.stakedTokenId: amountStaked}
         registers = [
@@ -545,7 +569,7 @@ class StakeProxyBox(ErgoBox):
             ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
         ]  
 
-        super().__init__(appKit,int(1e6),stakeProxyContract.contract,tokens,registers)
+        super().__init__(appKit,int(11e6)+stakeProxyContract.config.proxyToStakingIncentive+stakeProxyContract.config.proxyExecutorReward+stakeProxyContract.config.proxyMinerFee,stakeProxyContract.contract,tokens,registers)
 
         self._amountToStake = amountToStake
         self._userErgoTree = userErgoTree
@@ -614,7 +638,7 @@ class AddStakeProxyBox(ErgoBox):
             ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
         ]  
 
-        super().__init__(appKit,int(1e6),addStakeProxyContract.contract,tokens,registers)
+        super().__init__(appKit,int(1e7)+addStakeProxyContract.config.proxyAddToStakingIncentive+addStakeProxyContract.config.proxyExecutorReward+addStakeProxyContract.config.proxyMinerFee,addStakeProxyContract.contract,tokens,registers)
 
         self._amountToStake = amountToStake
         self._userErgoTree = userErgoTree
@@ -680,9 +704,9 @@ class UnstakeProxyBox(ErgoBox):
                 int(amountToUnstake)
             ],ErgoValueT.LongArray),
             ErgoAppKit.ergoValue(userErgoTree, ErgoValueT.ByteArrayFromHex)
-        ]  
+        ]
 
-        super().__init__(appKit,int(1e6),unstakeProxyContract.contract,tokens,registers)
+        super().__init__(appKit,int(11e6)+unstakeProxyContract.config.proxyToStakingIncentive+unstakeProxyContract.config.proxyExecutorReward+unstakeProxyContract.config.proxyMinerFee,unstakeProxyContract.contract,tokens,registers)
 
         self._amountToUnstake = amountToUnstake
         self._userErgoTree = userErgoTree
@@ -766,11 +790,11 @@ class EmitTransaction(ErgoTransaction):
         stakeStateBox.amountStaked = stakeStateBox.amountStaked + stakePoolBox.emissionAmount - dust
         stakeStateBox.checkpoint = stakeStateBox.checkpoint + 1
         stakeStateBox.checkpointTime = stakeStateBox.checkpointTime + stakeStateBox.cycleDuration
-        stakingIncentiveBox.value -= int(4e6)
-        txExecutorBox = ErgoBox(stakingConfig.appKit,int(3e6),stakingConfig.appKit.contractFromAddress(address))
+        stakingIncentiveBox.value -= (stakingConfig.emitMinerFee + stakingConfig.emitReward)
+        txExecutorBox = ErgoBox(stakingConfig.appKit,stakingConfig.emitReward,stakingConfig.appKit.contractFromAddress(address))
         self.inputs = [stakeStateInput,stakePoolInput,emissionInput,stakingIncentiveInput]
         self.outputs = [stakeStateBox.outBox,stakePoolBox.outBox,emissionBox.outBox,stakingIncentiveBox.outBox,txExecutorBox.outBox]
-        self.fee = int(1e6)
+        self.fee = stakingConfig.emitMinerFee
         self.changeAddress = address
 
 class CompoundTransaction(ErgoTransaction):
@@ -802,10 +826,10 @@ class CompoundTransaction(ErgoTransaction):
 
         emissionBox.emissionRemaining -= stakeRewards
         emissionBox.stakers -= len(stakeBoxes)
-        txValue = int(900000 + 750000 * len(stakeBoxes))
-        minerFee = int(1000000 + 500000 * len(stakeBoxes))
-        stakingIncentiveBox.value -= txValue
-        txExecutorBox = ErgoBox(stakingConfig.appKit,txValue-minerFee,stakingConfig.appKit.contractFromAddress(address))
+        reward = int(stakingConfig.baseCompoundReward + stakingConfig.variableCompoundReward * len(stakeBoxes))
+        minerFee = int(stakingConfig.baseCompoundMinerFee + stakingConfig.variableCompoundMinerFee * len(stakeBoxes))
+        stakingIncentiveBox.value -= (reward + minerFee)
+        txExecutorBox = ErgoBox(stakingConfig.appKit,reward,stakingConfig.appKit.contractFromAddress(address))
         self.inputs = [emissionInput] + stakeInputs + [stakingIncentiveInput]
         self.outputs = [emissionBox.outBox] + stakeBoxes + [stakingIncentiveBox.outBox, txExecutorBox.outBox]
         self.fee = minerFee
@@ -846,13 +870,13 @@ class StakeTransaction(ErgoTransaction):
             stakeKey=stakeStateInput.getId().toString()
         )
 
-        stakingIncentiveBox = StakingIncentiveBox(stakingConfig.appKit, stakingConfig.stakingIncentiveContract, int(1e8))
+        stakingIncentiveBox = StakingIncentiveBox(stakingConfig.appKit, stakingConfig.stakingIncentiveContract, stakingConfig.proxyToStakingIncentive)
 
-        txExecutorBox = ErgoBox(stakingConfig.appKit,int(2e6),stakingConfig.appKit.contractFromAddress(address))
+        txExecutorBox = ErgoBox(stakingConfig.appKit,stakingConfig.proxyExecutorReward,stakingConfig.appKit.contractFromAddress(address))
 
         self.inputs = [stakeStateInput, stakeProxyInput]
         self.outputs = [stakeStateBox.outBox, stakeBox.outBox, userOutput, stakingIncentiveBox.outBox, txExecutorBox.outBox]
-        self.fee = int(2e6)
+        self.fee = stakingConfig.proxyMinerFee
         self.changeAddress = address
 
 class AddStakeTransaction(ErgoTransaction):
@@ -883,13 +907,13 @@ class AddStakeTransaction(ErgoTransaction):
             tokens={stakeBox.stakeKey: 1}
         )
 
-        stakingIncentiveBox = StakingIncentiveBox(stakingConfig.appKit, stakingConfig.stakingIncentiveContract, int(1e7))
+        stakingIncentiveBox = StakingIncentiveBox(stakingConfig.appKit, stakingConfig.stakingIncentiveContract, stakingConfig.proxyAddToStakingIncentive)
 
-        txExecutorBox = ErgoBox(stakingConfig.appKit,int(2e6),stakingConfig.appKit.contractFromAddress(address))
+        txExecutorBox = ErgoBox(stakingConfig.appKit,stakingConfig.proxyExecutorReward,stakingConfig.appKit.contractFromAddress(address))
 
         self.inputs = [stakeStateInput, stakeInput, addStakeProxyInput]
         self.outputs = [stakeStateBox.outBox, stakeBox.outBox, userOutput.outBox, stakingIncentiveBox.outBox, txExecutorBox.outBox]
-        self.fee = int(2e6)
+        self.fee = stakingConfig.proxyMinerFee
         self.changeAddress = address
 
 class UnstakeTransaction(ErgoTransaction):
@@ -951,6 +975,18 @@ class StakingConfig:
     stakePoolKey: str
     stakedTokenName: str
     stakedTokenDecimals: int
+    proxyToStakingIncentive: int
+    proxyAddToStakingIncentive: int
+    proxyExecutorReward: int
+    proxyMinerFee: int
+    dustCollectionReward: int
+    dustCollectionMinerFee: int
+    emitReward: int
+    emitMinerFee: int
+    baseCompoundReward: int
+    baseCompoundMinerFee: int
+    variableCompoundReward: int
+    variableCompoundMinerFee: int
     stakeStateContract: StakeStateContract = None
     stakePoolContract: StakePoolContract = None
     emissionContract: EmissionContract = None
@@ -970,7 +1006,19 @@ def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     stakedTokenId = "c9cce92efe5beb4253456b0ccf3bb97ce5ddcf69fb382c2a00722f33bd97eb46",
     stakePoolKey= "6605390819ab84f716d808874ac1f48ea9cc43526a81262210ffb6177eb2ce63",
     stakedTokenName = "Paideia Test",
-    stakedTokenDecimals = 4)
+    stakedTokenDecimals = 4,
+    proxyToStakingIncentive = int(1e8),
+    proxyAddToStakingIncentive = int(1e7),
+    proxyExecutorReward = int(2e6),
+    proxyMinerFee = int(2e6),
+    dustCollectionReward = int(5e5),
+    dustCollectionMinerFee = int(1e6),
+    emitReward = int(3e6),
+    emitMinerFee = int(1e6),
+    baseCompoundReward = int(5e5),
+    baseCompoundMinerFee = int(1e6),
+    variableCompoundReward = int(15e4),
+    variableCompoundMinerFee = int(1e5))
     result.stakeContract = StakeContract(result)
     result.stakeStateContract = StakeStateContract(result)
     result.stakePoolContract = StakePoolContract(result)

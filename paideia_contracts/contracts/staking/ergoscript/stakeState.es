@@ -29,7 +29,7 @@
   ))
   if (OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1) { // Stake transaction
       if (OUTPUTS(0).tokens(1)._2 < SELF.tokens(1)._2) {
-      // Stake State (SELF), Stake Proxy => Stake State, Stake, Stake Key (User)
+      // // Stake State (SELF), Stake Proxy => Stake State, Stake, Stake Key (User)
         sigmaProp(allOf(Coll(
             selfReplication,
             // Stake State
@@ -72,7 +72,6 @@
             OUTPUTS(1).tokens(1)._1 == stakedTokenID,
             OUTPUTS(1).tokens(1)._2 == INPUTS(1).tokens(1)._2 + INPUTS(2).tokens(1)._2,
             //Stake key
-            OUTPUTS(2).propositionBytes == INPUTS(2).R5[Coll[Byte]].get,
             OUTPUTS(2).tokens(0)._1 == OUTPUTS(1).R5[Coll[Byte]].get,
             OUTPUTS(2).tokens(0)._2 == 1L
         )))
@@ -94,8 +93,8 @@
             OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2
         )))
   } else {
-  if (SELF.R4[Coll[Long]].get(0) > OUTPUTS(0).R4[Coll[Long]].get(0) && INPUTS.size >= 3) { // Unstake
-      // Stake State (SELF), Stake, UnstakeProxy => Stake State, User Wallet, Stake (optional for partial unstake)
+  if (SELF.R4[Coll[Long]].get(0) > OUTPUTS(0).R4[Coll[Long]].get(0) && INPUTS.size >= 3 && INPUTS(1).tokens.size > 1) { // Unstake
+      // // Stake State (SELF), Stake, UnstakeProxy => Stake State, User Wallet, Stake (optional for partial unstake)
       val unstaked = SELF.R4[Coll[Long]].get(0) - OUTPUTS(0).R4[Coll[Long]].get(0)
       val stakeKey = INPUTS(2).tokens(0)._1 == INPUTS(1).R5[Coll[Byte]].get
       val remaining = INPUTS(1).tokens(1)._2 - unstaked
@@ -110,8 +109,6 @@
           OUTPUTS(0).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - (if (remaining == 0L) 1L else 0L),
           OUTPUTS(0).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3),
           OUTPUTS(0).tokens(1)._2 == SELF.tokens(1)._2 + (if (remaining == 0L) 1L else 0L),
-          //User wallet
-          OUTPUTS(1).propositionBytes == INPUTS(2).R5[Coll[Byte]].get,
           OUTPUTS(1).tokens(0)._1 == INPUTS(1).tokens(1)._1,
           OUTPUTS(1).tokens(0)._2 == unstaked,
           if (remaining > 0L) allOf(Coll(
