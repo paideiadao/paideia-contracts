@@ -966,6 +966,128 @@ class UnstakeTransaction(ErgoTransaction):
         self.fee = int(2e6)
         self.changeAddress = address
 
+class CreateStakeProxyTransaction(ErgoTransaction):
+    def __init__(self, 
+            userInputs: List[InputBox],
+            stakingConfig,
+            amountToStake: int,
+            address: str) -> None:
+        super().__init__(stakingConfig.appKit)
+        
+        stakeProxyBox = StakeProxyBox(
+            appKit=stakingConfig.appKit,
+            stakeProxyContract=stakingConfig.stakeProxyContract,
+            amountToStake=amountToStake,
+            userErgoTree=stakingConfig.appKit.contractFromAddress(address).getErgoTree().bytesHex(),
+            stakeTime=int(time()*1000)
+        )
+
+        if not ErgoAppKit.boxesCovered(userInputs, stakeProxyBox.value + int(1e6), stakeProxyBox.tokens):
+            raise InvalidTransactionConditionsException("Not enough erg/tokens in the user input boxes")
+
+        self.inputs = userInputs
+        self.outputs = [stakeProxyBox.outBox]
+        self.fee = int(1e6)
+        self.changeAddress = address
+
+    @staticmethod
+    def assetsRequired(stakingConfig, amountToStake: int) -> AssetsRequired:
+        stakeProxyBox = StakeProxyBox(
+            appKit=stakingConfig.appKit,
+            stakeProxyContract=stakingConfig.stakeProxyContract,
+            amountToStake=amountToStake,
+            userErgoTree="",
+            stakeTime=int(time()*1000)
+        )
+        return AssetsRequired(
+            nErgRequired=int(1e6) + stakeProxyBox.value,
+            tokensRequired=stakeProxyBox.tokens
+        )
+
+class CreateAddStakeProxyTransaction(ErgoTransaction):
+    def __init__(self, 
+            userInputs: List[InputBox],
+            stakeInput: InputBox,
+            stakingConfig,
+            amountToStake: int,
+            address: str) -> None:
+        super().__init__(stakingConfig.appKit)
+
+        stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
+        
+        addStakeProxyBox = AddStakeProxyBox(
+            appKit=stakingConfig.appKit,
+            addStakeProxyContract=stakingConfig.addStakeProxyContract,
+            amountToStake=amountToStake,
+            userErgoTree=stakingConfig.appKit.contractFromAddress(address).getErgoTree().bytesHex(),
+            stakeBox=stakeBox
+        )
+
+        if not ErgoAppKit.boxesCovered(userInputs, addStakeProxyBox.value + int(1e6), addStakeProxyBox.tokens):
+            raise InvalidTransactionConditionsException("Not enough erg/tokens in the user input boxes")
+
+        self.inputs = userInputs
+        self.outputs = [addStakeProxyBox.outBox]
+        self.fee = int(1e6)
+        self.changeAddress = address
+
+    @staticmethod
+    def assetsRequired(stakingConfig, amountToStake: int, stakeInput: InputBox) -> AssetsRequired:
+        stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
+        addStakeProxyBox = AddStakeProxyBox(
+            appKit=stakingConfig.appKit,
+            addStakeProxyContract=stakingConfig.addStakeProxyContract,
+            amountToStake=amountToStake,
+            userErgoTree="",
+            stakeBox=stakeBox
+        )
+        return AssetsRequired(
+            nErgRequired=int(1e6) + addStakeProxyBox.value,
+            tokensRequired=addStakeProxyBox.tokens
+        )
+
+class CreateUnstakeProxyTransaction(ErgoTransaction):
+    def __init__(self, 
+            userInputs: List[InputBox],
+            stakeInput: InputBox,
+            stakingConfig,
+            amountToUnstake: int,
+            address: str) -> None:
+        super().__init__(stakingConfig.appKit)
+
+        stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
+        
+        unstakeProxyBox = UnstakeProxyBox(
+            appKit=stakingConfig.appKit,
+            unstakeProxyContract=stakingConfig.unstakeProxyContract,
+            amountToUnstake=amountToUnstake,
+            userErgoTree=stakingConfig.appKit.contractFromAddress(address).getErgoTree().bytesHex(),
+            stakeBox=stakeBox
+        )
+
+        if not ErgoAppKit.boxesCovered(userInputs, unstakeProxyBox.value + int(1e6), unstakeProxyBox.tokens):
+            raise InvalidTransactionConditionsException("Not enough erg/tokens in the user input boxes")
+
+        self.inputs = userInputs
+        self.outputs = [unstakeProxyBox.outBox]
+        self.fee = int(1e6)
+        self.changeAddress = address
+
+    @staticmethod
+    def assetsRequired(stakingConfig, amountToUnstake: int, stakeInput: InputBox) -> AssetsRequired:
+        stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
+        unstakeProxyBox = UnstakeProxyBox(
+            appKit=stakingConfig.appKit,
+            unstakeProxyContract=stakingConfig.unstakeProxyContract,
+            amountToUnstake=amountToUnstake,
+            userErgoTree="",
+            stakeBox=stakeBox
+        )
+        return AssetsRequired(
+            nErgRequired=int(1e6) + unstakeProxyBox.value,
+            tokensRequired=unstakeProxyBox.tokens
+        )
+
 @dataclass
 class StakingConfig:
     appKit: ErgoAppKit
