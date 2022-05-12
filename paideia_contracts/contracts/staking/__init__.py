@@ -7,6 +7,7 @@ from typing import Dict, List
 from ergo_python_appkit.appkit import ErgoAppKit, ErgoValueT
 from paideia_contracts.contracts.ErgoBox import ErgoBox
 from paideia_contracts.contracts.ErgoContractBase import ErgoContractBase
+import requests
 
 from org.ergoplatform.appkit import ErgoValue, InputBox
 from sigmastate.Values import ErgoTree
@@ -76,7 +77,8 @@ class StakeStateContract(PaideiaStakingContract):
 class StakePoolContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
         mapping = {
-            "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue()
+            "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
+            "_emissionFeeAddress": ErgoAppKit.ergoValue("0008cd02189359b825e96aa3c7af90c9958d85daf8f86358382db3306e024c5aeea1e8ec", ErgoValueT.ByteArrayFromHex).getValue()
         }
         super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakePool.es"),mapping=mapping)
 
@@ -367,7 +369,7 @@ class StakeBox(ErgoBox):
 class StakeStateBox(ErgoBox):
     def __init__(self, appKit: ErgoAppKit, stakeStateContract: StakeStateContract, checkpoint: int, checkpointTime: int, amountStaked: int, cycleDuration: int, stakers: int) -> None:
         self.stakeStateContract = stakeStateContract
-        tokens = {self.stakeStateContract.config.stakeStateNFT: 1, self.stakeStateContract.config.stakeTokenId: int(1e9)-stakers}
+        tokens = {self.stakeStateContract.config.stakeStateNFT: 1, self.stakeStateContract.config.stakeTokenId: int(1e12)-stakers}
         registers = [
             ErgoAppKit.ergoValue([
                 amountStaked,
@@ -421,7 +423,7 @@ class StakeStateBox(ErgoBox):
     def stakers(self, stakers: int) -> None:
         self._stakers = stakers
         self.updateRegisters()
-        self.tokens[self.stakeStateContract.config.stakeTokenId] = int(1e9) - stakers
+        self.tokens[self.stakeStateContract.config.stakeTokenId] = int(1e12) - stakers
 
     @property
     def amountStaked(self) -> int:
@@ -784,18 +786,24 @@ class EmitTransaction(ErgoTransaction):
             raise InvalidTransactionConditionsException("Previous emission not finished yet")
         dust = emissionBox.emissionRemaining
         stakePoolBox.remaining = stakePoolBox.remaining - stakePoolBox.emissionAmount + dust
-        emissionBox.emissionRemaining = stakePoolBox.emissionAmount
+        emissionBox.emissionRemaining = stakePoolBox.emissionAmount - int(stakePoolBox.emissionAmount/100)
         emissionBox.checkpoint = stakeStateBox.checkpoint
         emissionBox.amountStaked = stakeStateBox.amountStaked
         emissionBox.stakers = stakeStateBox.stakers
-        emissionBox.emissionAmount = stakePoolBox.emissionAmount
-        stakeStateBox.amountStaked = stakeStateBox.amountStaked + stakePoolBox.emissionAmount - dust
+        emissionBox.emissionAmount = stakePoolBox.emissionAmount - int(stakePoolBox.emissionAmount/100)
+        stakeStateBox.amountStaked = stakeStateBox.amountStaked + (stakePoolBox.emissionAmount - int(stakePoolBox.emissionAmount/100)) - dust
         stakeStateBox.checkpoint = stakeStateBox.checkpoint + 1
         stakeStateBox.checkpointTime = stakeStateBox.checkpointTime + stakeStateBox.cycleDuration
-        stakingIncentiveBox.value -= (stakingConfig.emitMinerFee + stakingConfig.emitReward)
+        emissionFeeBox = ErgoBox(
+            stakingConfig.appKit,
+            int(1e6),
+            stakingConfig.appKit.contractFromAddress("9ehtGMAL6gxjjz7TY8QdKnbsXzt8XSgEX4MuMKauf8cZpPumEtU"),
+            tokens={stakingConfig.stakedTokenId: int(stakePoolBox.emissionAmount/100)}
+        )
+        stakingIncentiveBox.value -= (stakingConfig.emitMinerFee + stakingConfig.emitReward + int(1e6))
         txExecutorBox = ErgoBox(stakingConfig.appKit,stakingConfig.emitReward,stakingConfig.appKit.contractFromAddress(address))
         self.inputs = [stakeStateInput,stakePoolInput,emissionInput,stakingIncentiveInput]
-        self.outputs = [stakeStateBox.outBox,stakePoolBox.outBox,emissionBox.outBox,stakingIncentiveBox.outBox,txExecutorBox.outBox]
+        self.outputs = [stakeStateBox.outBox,stakePoolBox.outBox,emissionBox.outBox,emissionFeeBox.outBox,stakingIncentiveBox.outBox,txExecutorBox.outBox]
         self.fee = stakingConfig.emitMinerFee
         self.changeAddress = address
 
@@ -1122,15 +1130,162 @@ class StakingConfig:
 
 def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
+        appKit = appKit,
+        stakeStateNFT = "5aa861e5dc77f860188322a78ca8081291b43df78049a7ba98224c2a6d1ca371",
+        stakePoolNFT = "ffd0a78c82c03b1d91ebee1595a5e14d4b5bcf811f125abe0bc41acd1d62b498",
+        emissionNFT = "9d5cfabd0e811ffbe0783e05b766e1b9a3a98d17f917a38b065941a7d45c65ae",
+        stakeTokenId = "83857c35968130a6d91483a278ce087dd223f031abf56f1133a2e59c923dc584",
+        stakedTokenId = "001475b06ed4d2a2fe1e244c951b4c70d924b933b9ee05227f2f2da7d6f46fd3",
+        stakePoolKey= "e06c878fced4162c13e53d14ab574109317d5a425ff98dcff8ad0fcd88d54050",
+        stakedTokenName = "PaideiaTest",
+        stakedTokenDecimals = 4,
+        proxyToStakingIncentive = int(1e8),
+        proxyAddToStakingIncentive = int(1e7),
+        proxyExecutorReward = int(2e6),
+        proxyMinerFee = int(2e6),
+        dustCollectionReward = int(5e5),
+        dustCollectionMinerFee = int(1e6),
+        emitReward = int(3e6),
+        emitMinerFee = int(1e6),
+        baseCompoundReward = int(5e5),
+        baseCompoundMinerFee = int(1e6),
+        variableCompoundReward = int(15e4),
+        variableCompoundMinerFee = int(1e5))
+    result.stakeContract = StakeContract(result)
+    result.stakeStateContract = StakeStateContract(result)
+    result.stakePoolContract = StakePoolContract(result)
+    result.emissionContract = EmissionContract(result)
+    result.stakingIncentiveContract = StakingIncentiveContract(result)
+    result.stakeProxyContract = StakeProxyContract(result)
+    result.addStakeProxyContract = AddStakeProxyContract(result)
+    result.unstakeProxyContract = UnstakeProxyContract(result)
+    return result
+
+def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, stakingStart: int, stakingCycleDuration: int, dailyEmission: int, stakePoolSize: int) -> StakingConfig:
+    res = requests.get(f"https://api.ergoplatform.com/api/v1/tokens/{tokenId}")
+    stakedTokenName = res.json()["name"]
+    stakedTokenDecimals = res.json()["decimals"]
+    print(stakedTokenName)
+    nodeContract = appKit.contractFromAddress(nodeAddress)
+    nodeInputs = appKit.boxesToSpend(nodeAddress,int(14e6),{tokenId: int(stakePoolSize*10**stakedTokenDecimals)})
+
+    #Stake state nft mint
+    stakeStateNFT = nodeInputs[0].getId().toString()
+    stakeStateNFTBox = appKit.mintToken(
+        value=int(1e6),
+        tokenId=stakeStateNFT,
+        tokenName=f"{stakedTokenName} Stake State NFT",
+        tokenDesc=f"Stake State NFT for {stakedTokenName} staking setup",
+        mintAmount=1,
+        decimals=0,
+        contract=nodeContract
+    )
+    nodeBox = ErgoBox(appKit,int(12e6),contract=nodeContract,tokens={tokenId: int(stakePoolSize*10**stakedTokenDecimals)})
+    stakeStateMintunsignedTx = ErgoTransaction(appKit)
+    stakeStateMintunsignedTx.inputs=nodeInputs
+    stakeStateMintunsignedTx.outputs=[stakeStateNFTBox,nodeBox.outBox]
+    stakeStateMintunsignedTx.fee=int(1e6)
+    stakeStateMintunsignedTx.changeAddress=nodeAddress
+    stakeStateMintTx = appKit.signTransactionWithNode(stakeStateMintunsignedTx.unsignedTx)
+    appKit.sendTransaction(stakeStateMintTx)
+
+    #Stake Pool NFT mint
+    nodeInputs = stakeStateMintTx.getOutputsToSpend()
+    stakePoolNFT = nodeInputs[1].getId().toString()
+    stakePoolNFTBox = appKit.mintToken(
+        value=int(1e6),
+        tokenId=stakePoolNFT,
+        tokenName=f"{stakedTokenName} Stake Pool NFT",
+        tokenDesc=f"Stake Pool NFT for {stakedTokenName} staking setup",
+        mintAmount=1,
+        decimals=0,
+        contract=nodeContract
+    )
+    nodeBox = ErgoBox(appKit,nodeInputs[1].getValue()-int(2e6),contract=nodeContract,tokens={tokenId: int(stakePoolSize*10**stakedTokenDecimals)})
+    stakePoolMintunsignedTx = ErgoTransaction(appKit)
+    stakePoolMintunsignedTx.inputs=[nodeInputs[1]]
+    stakePoolMintunsignedTx.outputs=[stakePoolNFTBox,nodeBox.outBox]
+    stakePoolMintunsignedTx.fee=int(1e6)
+    stakePoolMintunsignedTx.changeAddress=nodeAddress
+    stakePoolMintTx = appKit.signTransactionWithNode(stakePoolMintunsignedTx.unsignedTx)
+    appKit.sendTransaction(stakePoolMintTx)
+
+    #Emission NFT mint
+    nodeInputs = stakePoolMintTx.getOutputsToSpend()
+    emissionNFT = nodeInputs[1].getId().toString()
+    emissionNFTBox = appKit.mintToken(
+        value=int(1e6),
+        tokenId=emissionNFT,
+        tokenName=f"{stakedTokenName} Emission NFT",
+        tokenDesc=f"Emission NFT for {stakedTokenName} staking setup",
+        mintAmount=1,
+        decimals=0,
+        contract=nodeContract
+    )
+    nodeBox = ErgoBox(appKit,nodeInputs[1].getValue()-int(2e6),contract=nodeContract,tokens={tokenId: int(stakePoolSize*10**stakedTokenDecimals)})
+    emissionMintunsignedTx = ErgoTransaction(appKit)
+    emissionMintunsignedTx.inputs=[nodeInputs[1]]
+    emissionMintunsignedTx.outputs=[emissionNFTBox,nodeBox.outBox]
+    emissionMintunsignedTx.fee=int(1e6)
+    emissionMintunsignedTx.changeAddress=nodeAddress
+    emissionMintTx = appKit.signTransactionWithNode(emissionMintunsignedTx.unsignedTx)
+    appKit.sendTransaction(emissionMintTx)
+
+
+    #Stake token mint
+    nodeInputs = emissionMintTx.getOutputsToSpend()
+    stakeTokenId = nodeInputs[1].getId().toString()
+    stakeTokenBox = appKit.mintToken(
+        value=int(1e6),
+        tokenId=stakeTokenId,
+        tokenName=f"{stakedTokenName} Stake Token",
+        tokenDesc=f"Stake Token for {stakedTokenName} staking setup",
+        mintAmount=int(1e12),
+        decimals=0,
+        contract=nodeContract
+    )
+    nodeBox = ErgoBox(appKit,nodeInputs[1].getValue()-int(2e6),contract=nodeContract,tokens={tokenId: int(stakePoolSize*10**stakedTokenDecimals)})
+    stakeTokenMintunsignedTx = ErgoTransaction(appKit)
+    stakeTokenMintunsignedTx.inputs=[nodeInputs[1]]
+    stakeTokenMintunsignedTx.outputs=[stakeTokenBox,nodeBox.outBox]
+    stakeTokenMintunsignedTx.fee=int(1e6)
+    stakeTokenMintunsignedTx.changeAddress=nodeAddress
+    stakeTokenMintTx = appKit.signTransactionWithNode(stakeTokenMintunsignedTx.unsignedTx)
+    appKit.sendTransaction(stakeTokenMintTx)
+
+
+    #Stake pool key mint
+    nodeInputs = stakeTokenMintTx.getOutputsToSpend()
+    stakePoolKey = nodeInputs[1].getId().toString()
+    stakePoolKeyBox = appKit.mintToken(
+        value=int(1e6),
+        tokenId=stakePoolKey,
+        tokenName=f"{stakedTokenName} Stake Pool Key",
+        tokenDesc=f"Stake Pool Key for {stakedTokenName} staking setup",
+        mintAmount=2,
+        decimals=0,
+        contract=nodeContract
+    )
+    nodeBox = ErgoBox(appKit,nodeInputs[1].getValue()-int(2e6),contract=nodeContract,tokens={tokenId: int(stakePoolSize*10**stakedTokenDecimals)})
+    stakePoolKeyMintunsignedTx = ErgoTransaction(appKit)
+    stakePoolKeyMintunsignedTx.inputs=[nodeInputs[1]]
+    stakePoolKeyMintunsignedTx.outputs=[stakePoolKeyBox,nodeBox.outBox]
+    stakePoolKeyMintunsignedTx.fee=int(1e6)
+    stakePoolKeyMintunsignedTx.changeAddress=nodeAddress
+    stakePoolKeyMintTx = appKit.signTransactionWithNode(stakePoolKeyMintunsignedTx.unsignedTx)
+    appKit.sendTransaction(stakePoolKeyMintTx)
+
+
+    config = StakingConfig(
     appKit = appKit,
-    stakeStateNFT = "efdcb8ec05cf4da345530293860fa4b7106575fd6c2acc91a4e951e8b195c01f",
-    stakePoolNFT = "56aa0514bae0abaa32f93af1c5f50e41fb0146abc8aeef6c6f710bc3c9986b58",
-    emissionNFT = "8b9afefb32e2a6ad9c622d49826afb458c3f329a433a1bf928208f25f43fb734",
-    stakeTokenId = "91e6e1e2e9a35a16848c66d58ac100be0112024016922e4783825183396efe0a",
-    stakedTokenId = "c9cce92efe5beb4253456b0ccf3bb97ce5ddcf69fb382c2a00722f33bd97eb46",
-    stakePoolKey= "6605390819ab84f716d808874ac1f48ea9cc43526a81262210ffb6177eb2ce63",
-    stakedTokenName = "Paideia Test",
-    stakedTokenDecimals = 4,
+    stakeStateNFT = stakeStateNFT,
+    stakePoolNFT = stakePoolNFT,
+    emissionNFT = emissionNFT,
+    stakeTokenId = stakeTokenId,
+    stakedTokenId = tokenId,
+    stakePoolKey = stakePoolKey,
+    stakedTokenName = stakedTokenName,
+    stakedTokenDecimals = stakedTokenDecimals,
     proxyToStakingIncentive = int(1e8),
     proxyAddToStakingIncentive = int(1e7),
     proxyExecutorReward = int(2e6),
@@ -1143,12 +1298,48 @@ def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     baseCompoundMinerFee = int(1e6),
     variableCompoundReward = int(15e4),
     variableCompoundMinerFee = int(1e5))
-    result.stakeContract = StakeContract(result)
-    result.stakeStateContract = StakeStateContract(result)
-    result.stakePoolContract = StakePoolContract(result)
-    result.emissionContract = EmissionContract(result)
-    result.stakingIncentiveContract = StakingIncentiveContract(result)
-    result.stakeProxyContract = StakeProxyContract(result)
-    result.addStakeProxyContract = AddStakeProxyContract(result)
-    result.unstakeProxyContract = UnstakeProxyContract(result)
-    return result
+    config.stakeContract = StakeContract(config)
+    config.stakeStateContract = StakeStateContract(config)
+    config.stakePoolContract = StakePoolContract(config)
+    config.emissionContract = EmissionContract(config)
+    config.stakingIncentiveContract = StakingIncentiveContract(config)
+    config.stakeProxyContract = StakeProxyContract(config)
+    config.addStakeProxyContract = AddStakeProxyContract(config)
+    config.unstakeProxyContract = UnstakeProxyContract(config)
+    
+    stakeStateBox = StakeStateBox(
+        appKit=appKit,
+        stakeStateContract=config.stakeStateContract,
+        checkpoint=0,
+        checkpointTime=stakingStart-stakingCycleDuration,
+        amountStaked=0,
+        cycleDuration=stakingCycleDuration,
+        stakers=0
+        )
+
+    stakePoolBox = StakePoolBox(
+        appKit=appKit,
+        stakePoolContract=config.stakePoolContract,
+        emissionAmount=int(dailyEmission*10**stakedTokenDecimals),
+        remaining=int(stakePoolSize*10**stakedTokenDecimals)
+    )
+
+    emissionBox = EmissionBox(
+        appKit=appKit,
+        emissionContract=config.emissionContract,
+        emissionRemaining=0,
+        amountStaked=0,
+        checkpoint=-1,
+        stakers=0,
+        emissionAmount=int(dailyEmission*10**stakedTokenDecimals)
+    )
+
+    bootstrapUnsignedTx = ErgoTransaction(appKit)
+    bootstrapUnsignedTx.inputs = [stakeStateMintTx.getOutputsToSpend()[0],stakePoolMintTx.getOutputsToSpend()[0],stakeTokenMintTx.getOutputsToSpend()[0],emissionMintTx.getOutputsToSpend()[0],stakePoolKeyMintTx.getOutputsToSpend()[1]]
+    bootstrapUnsignedTx.outputs = [stakeStateBox.outBox,stakePoolBox.outBox,emissionBox.outBox]
+    bootstrapUnsignedTx.fee = int(1e6)
+    bootstrapUnsignedTx.changeAddress = nodeAddress
+    bootstrapTx = appKit.signTransactionWithNode(bootstrapUnsignedTx.unsignedTx)
+    appKit.sendTransaction(bootstrapTx)
+
+    return config

@@ -17,10 +17,10 @@
     {
         sigmaProp(allOf(Coll(
             INPUTS(INPUTS.size-1).id == SELF.id,
-            OUTPUTS(3).propositionBytes == SELF.propositionBytes,
-            OUTPUTS(3).value >= SELF.value - emitReward - emitMinerFee,
-            OUTPUTS(4).value == emitReward,
-            OUTPUTS(5).value == emitMinerFee
+            OUTPUTS(4).propositionBytes == SELF.propositionBytes,
+            OUTPUTS(4).value >= SELF.value - emitReward - emitMinerFee - 1000000,
+            OUTPUTS(5).value == emitReward,
+            OUTPUTS(6).value == emitMinerFee
         )))
     }
     else

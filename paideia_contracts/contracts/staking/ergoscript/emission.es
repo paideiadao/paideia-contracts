@@ -22,7 +22,7 @@
             OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(0).R4[Coll[Long]].get(0),
             OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(0).R4[Coll[Long]].get(1),
             OUTPUTS(2).R4[Coll[Long]].get(2) == INPUTS(0).R4[Coll[Long]].get(2),
-            OUTPUTS(2).R4[Coll[Long]].get(3) == (if (INPUTS(1).R4[Coll[Long]].get(0) < remainingAndDust) INPUTS(1).R4[Coll[Long]].get(0) else remainingAndDust),
+            OUTPUTS(2).R4[Coll[Long]].get(3) == (if (INPUTS(1).R4[Coll[Long]].get(0) < remainingAndDust) (INPUTS(1).R4[Coll[Long]].get(0)-INPUTS(1).R4[Coll[Long]].get(0)/100L) else remainingAndDust),
             OUTPUTS(2).tokens(0)._1 == SELF.tokens(0)._1,
             OUTPUTS(2).tokens(1)._1 == stakedTokenID,
             OUTPUTS(2).tokens(1)._2 == OUTPUTS(2).R4[Coll[Long]].get(3)

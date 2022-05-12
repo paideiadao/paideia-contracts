@@ -26,6 +26,13 @@
             ))
         )
     } else {
-        sigmaProp(false)
+        sigmaProp(
+            allOf(Coll(
+                OUTPUTS(0).propositionBytes == SELF.R5[Coll[Byte]].get,
+                OUTPUTS(0).value == SELF.value - 1000000,
+                OUTPUTS(0).tokens == SELF.tokens,
+                OUTPUTS.size == 2
+            ))
+        )
     }
 }

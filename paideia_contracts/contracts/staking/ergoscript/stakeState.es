@@ -65,6 +65,7 @@
             // Stake
             blake2b256(OUTPUTS(1).propositionBytes) == stakeContract,
             blake2b256(INPUTS(1).propositionBytes) == stakeContract,
+            OUTPUTS(1).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1),
             OUTPUTS(1).R4[Coll[Long]].get == INPUTS(1).R4[Coll[Long]].get,
             OUTPUTS(1).R5[Coll[Byte]].get == INPUTS(1).R5[Coll[Byte]].get,
             OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1,
