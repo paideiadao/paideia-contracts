@@ -11,7 +11,7 @@ def glob_fix(package_name, glob):
             for path in package_path.glob(glob)]
 
 setuptools.setup(
-    name='Paideia Contracts',  
+    name='paideia_contracts',  
     version='0.0.1',
     packages=['paideia_contracts'] ,
     author="Robert Pieter van Leeuwen",
