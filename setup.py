@@ -20,8 +20,6 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/ergo-pad/paideia-contracts",
-    include_package_data=True,
-    package_data={'paideia_contracts': ['paideia_contracts']},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
