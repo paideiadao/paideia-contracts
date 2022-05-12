@@ -13,7 +13,7 @@ def glob_fix(package_name, glob):
 setuptools.setup(
     name='paideia_contracts',  
     version='0.0.1',
-    my_packages=setuptools.find_packages(),
+    my_packages=['paideia_contracts'],
     author="Robert Pieter van Leeuwen",
     author_email="luivatra@gmail.com",
     description="ErgoScript and Python wrappers for Paideia",
