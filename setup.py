@@ -28,6 +28,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'ergo_python_appkit @ git+https://github.com/ergo-pad/ergo-python-appkit.git@v0.0.7#egg=ergo_python_appkit',
+        'ergo_python_appkit>=0.0.7',
     ]
  )

@@ -241,7 +241,10 @@ class EmissionBox(ErgoBox):
     @emissionRemaining.setter
     def emissionRemaining(self, emissionRemaining: int) -> None:
         self._emissionRemaining = emissionRemaining
-        self.tokens[self.emissionContract.config.stakedTokenId] = emissionRemaining
+        if emissionRemaining > 0:
+            self.tokens[self.emissionContract.config.stakedTokenId] = emissionRemaining
+        else:
+            self.tokens.pop(self.emissionContract.config.stakedTokenId, None)
 
     @property
     def amountStaked(self) -> int:
