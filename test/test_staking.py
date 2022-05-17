@@ -3,14 +3,14 @@ import traceback
 from ergo_python_appkit.appkit import ErgoAppKit
 from paideia_contracts.contracts.ErgoBox import ErgoBox
 from paideia_contracts.contracts.ErgoTransaction import ErgoTransaction
-from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig, UnstakeProxyBox, UnstakeTransaction
+from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, CreateAddStakeProxyTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig, UnstakeProxyBox, UnstakeTransaction
 import pytest
 from sigmastate.lang.exceptions import InterpreterException
 
 class TestStaking:
     appKit = ErgoAppKit("http://213.239.193.208:9053","mainnet","https://api.ergoplatform.com/")
     config = PaideiaTestConfig(appKit)
-    txOperator = "9h7L7sUHZk43VQC3PHtSp5ujAWcZtYmWATBH746wi75C5XHi68b"
+    txOperator = "9hxT7sAZEmLWGNp3gN8RRw4qS1NxDMsCtuJkrQ5oEq5w1g7s97U"
 
     def test_emit(self):
         stakeStateInput = StakeStateBox(
@@ -63,32 +63,32 @@ class TestStaking:
         emissionInput = EmissionBox(
             appKit=self.appKit,
             emissionContract=self.config.emissionContract,
-            emissionRemaining=293000,
-            amountStaked=9569595,
-            checkpoint=0,
-            stakers=10,
-            emissionAmount=293000
+            emissionRemaining=271161000,
+            amountStaked=34206285950,
+            checkpoint=126,
+            stakers=2,
+            emissionAmount=271161000
         ).inputBox()
         stakeBox1 = StakeBox(
             appKit=self.appKit,
             stakeContract=self.config.stakeContract,
-            checkpoint=0,
+            checkpoint=126,
             stakeTime=0,
-            amountStaked=100000,
+            amountStaked=37619804,
             stakeKey=self.config.stakedTokenId #this value doesnt matter here
         ).inputBox()
         stakeBox2 = StakeBox(
             appKit=self.appKit,
             stakeContract=self.config.stakeContract,
-            checkpoint=0,
+            checkpoint=126,
             stakeTime=0,
-            amountStaked=333333,
+            amountStaked=34168666145,
             stakeKey=self.config.stakeTokenId #this value doesnt matter here
         ).inputBox()
         stakingIncentiveInput = StakingIncentiveBox(
             appKit=self.appKit,
             stakingIncentiveContract=self.config.stakingIncentiveContract,
-            value=int(1e9)
+            value=int(4953000000)
         ).inputBox()
         signed = False
         try:
@@ -139,30 +139,41 @@ class TestStaking:
         assert signed
 
     def test_add_stake(self):
-        stakeStateInput = StakeStateBox(
-            appKit=self.appKit,
-            stakeStateContract=self.config.stakeStateContract,
-            checkpoint=1,
-            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 86400001),
-            amountStaked=10000000,
-            cycleDuration=86400000,
-            stakers=10
-            ).inputBox()
+
         stakeInput = StakeBox(
             appKit=self.appKit,
             stakeContract=self.config.stakeContract,
-            checkpoint=1,
-            stakeTime=99,
-            amountStaked=100000,
-            stakeKey=self.config.stakePoolKey
-        ).inputBox()
+            checkpoint=int(118),
+            stakeTime=int(1652544797403),
+            amountStaked=int(15727686),
+            stakeKey="4d82471b2ec40ad3b301dbb5f0e62a5b7edbcdf3ec7dec1324b89f7d5ed65555"
+        ).inputBox("8a5917f284b2071db8cbd8cebe9ba793b244d67694ef4382693d0751837e1be4",1)
+
+        assetsRequired = CreateAddStakeProxyTransaction.assetsRequired(self.config, int(10000000), stakeInput)
+
+        userInputs = ErgoBox(appKit=self.appKit,
+            value=assetsRequired.nErgRequired,
+            contract=self.appKit.dummyContract(),
+            tokens={"4d82471b2ec40ad3b301dbb5f0e62a5b7edbcdf3ec7dec1324b89f7d5ed65555": 1, self.config.stakedTokenId: 10000000}).inputBox()
+        signedTx = self.appKit.signTransaction(CreateAddStakeProxyTransaction(userInputs=[userInputs],stakeInput=stakeInput,stakingConfig=self.config,amountToStake=int(10000000),address=self.appKit.dummyContract().toAddress().toString()).unsignedTx)
+
+        stakeStateInput = StakeStateBox(
+            appKit=self.appKit,
+            stakeStateContract=self.config.stakeStateContract,
+            checkpoint=int(118),
+            checkpointTime=int(1652691854000),
+            amountStaked=int(32016997958),
+            cycleDuration=int(3600000),
+            stakers=2
+            ).inputBox(txId="2f7b078dac5d369c4e1f1c1d9002d4eecf6ee62c3d8fed6579aa015c19133b1c",index=0)
+        #addStakeProxyInput = signedTx.getOutputsToSpend()[0]
         addStakeProxyInput = AddStakeProxyBox(
             appKit=self.appKit,
             addStakeProxyContract=self.config.addStakeProxyContract,
-            amountToStake=200000,
-            userErgoTree=self.appKit.contractFromAddress(self.txOperator).getErgoTree().bytesHex(),
+            amountToStake=int(10000000),
+            userErgoTree="0008cd026443d32bf23bce582b279abd85e128bc26ecb7d8ea1a9ceb87481db90fd80997",
             stakeBox=StakeBox.fromInputBox(stakeInput, self.config.stakeContract)
-        ).inputBox()
+        ).inputBox("674a706612ab9fa91349dd851dece20a6cb1fed53e27f1733323b8e7d48e04fb",0)
         signed = False
         try:
             unsignedTx = AddStakeTransaction(
