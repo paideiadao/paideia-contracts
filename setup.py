@@ -12,7 +12,7 @@ def glob_fix(package_name, glob):
 
 setuptools.setup(
     name='paideia_contracts',  
-    version='0.0.2',
+    version='0.0.3',
     my_packages=['paideia_contracts'],
     author="Robert Pieter van Leeuwen",
     author_email="luivatra@gmail.com",
