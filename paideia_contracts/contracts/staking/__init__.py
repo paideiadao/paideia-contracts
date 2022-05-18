@@ -1134,12 +1134,12 @@ class StakingConfig:
 def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         appKit = appKit,
-        stakeStateNFT = "5aa861e5dc77f860188322a78ca8081291b43df78049a7ba98224c2a6d1ca371",
-        stakePoolNFT = "ffd0a78c82c03b1d91ebee1595a5e14d4b5bcf811f125abe0bc41acd1d62b498",
-        emissionNFT = "9d5cfabd0e811ffbe0783e05b766e1b9a3a98d17f917a38b065941a7d45c65ae",
-        stakeTokenId = "83857c35968130a6d91483a278ce087dd223f031abf56f1133a2e59c923dc584",
+        stakeStateNFT = "4cdc113b47662a0e7ca3bf0cc1db7d9325e6281fa4525585cad96b0adf5b1a7a",
+        stakePoolNFT = "0c16ccf39c256671e06731cb6950e12ef084c7718d0536f7a65b7ede58856373",
+        emissionNFT = "58f9fdbd740e0c4d831bdff3ad0bda045f5c77e902c66df0df879bd853eec2c1",
+        stakeTokenId = "86b63db217e780e8f7015ae9cd83564795c7ee30c8c40b99105ee10b3778d448",
         stakedTokenId = "001475b06ed4d2a2fe1e244c951b4c70d924b933b9ee05227f2f2da7d6f46fd3",
-        stakePoolKey= "e06c878fced4162c13e53d14ab574109317d5a425ff98dcff8ad0fcd88d54050",
+        stakePoolKey= "dfdf8f7f51f922b4c8026861a990f331505af6f04169119e2ee66ea1c84910f6",
         stakedTokenName = "PaideiaTest",
         stakedTokenDecimals = 4,
         proxyToStakingIncentive = int(1e8),
