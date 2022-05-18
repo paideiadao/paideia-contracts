@@ -1,8 +1,8 @@
 from time import time
 import traceback
 from ergo_python_appkit.appkit import ErgoAppKit
-from paideia_contracts.contracts.ErgoBox import ErgoBox
-from paideia_contracts.contracts.ErgoTransaction import ErgoTransaction
+from ergo_python_appkit.ErgoBox import ErgoBox
+from ergo_python_appkit.ErgoTransaction import ErgoTransaction
 from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, CreateAddStakeProxyTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig, UnstakeProxyBox, UnstakeTransaction
 import pytest
 from sigmastate.lang.exceptions import InterpreterException

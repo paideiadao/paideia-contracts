@@ -5,14 +5,14 @@ import os
 from time import time
 from typing import Dict, List
 from ergo_python_appkit.appkit import ErgoAppKit, ErgoValueT
-from paideia_contracts.contracts.ErgoBox import ErgoBox
-from paideia_contracts.contracts.ErgoContractBase import ErgoContractBase
+from ergo_python_appkit.ErgoBox import ErgoBox
+from ergo_python_appkit.ErgoContractBase import ErgoContractBase
 import requests
 
 from org.ergoplatform.appkit import ErgoValue, InputBox
 from sigmastate.Values import ErgoTree
 
-from paideia_contracts.contracts.ErgoTransaction import ErgoTransaction
+from ergo_python_appkit.ErgoTransaction import ErgoTransaction
 
 class InvalidInputBoxException(Exception): pass
 class InvalidTransactionConditionsException(Exception): pass

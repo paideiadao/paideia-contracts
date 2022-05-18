@@ -12,7 +12,7 @@ def glob_fix(package_name, glob):
 
 setuptools.setup(
     name='paideia_contracts',  
-    version='0.0.3',
+    version='0.0.4',
     my_packages=['paideia_contracts'],
     author="Robert Pieter van Leeuwen",
     author_email="luivatra@gmail.com",
@@ -28,6 +28,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     install_requires=[
-        'ergo_python_appkit>=0.0.7',
+        'ergo_python_appkit>=0.0.8',
+        'requests>=2.27.1'
     ]
  )
