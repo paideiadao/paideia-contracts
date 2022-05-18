@@ -1099,6 +1099,53 @@ class CreateUnstakeProxyTransaction(ErgoTransaction):
             tokensRequired=unstakeProxyBox.tokens
         )
 
+class ConsolidateDustTransaction(ErgoTransaction):
+    def __init__(self, 
+        incentiveDustInputs: List[InputBox],
+        stakingConfig,
+        address: str) -> None:
+        super().__init__(stakingConfig.appKit)
+
+        for idi in incentiveDustInputs:
+            if not stakingConfig.stakingIncentiveContract.validateInputBox(idi):
+                raise InvalidInputBoxException("Not a valid staking incentive box")
+            if idi.getValue() > int(1e7):
+                raise InvalidInputBoxException("Too much erg in box")
+        
+        dustCollected = 99999999999999999999999
+        done = False
+        while not done:
+            currentDustCollected = -1 * stakingConfig.dustCollectionMinerFee
+            filteredIncentiveDustInputs = []
+            done = True
+            for idi in incentiveDustInputs:
+                if idi.getValue() < dustCollected:
+                    currentDustCollected += idi.getValue() - stakingConfig.dustCollectionReward
+                    filteredIncentiveDustInputs.append(idi)
+                else:
+                    done = False
+            incentiveDustInputs = filteredIncentiveDustInputs
+            if dustCollected != currentDustCollected:
+                done = False
+            dustCollected = currentDustCollected
+
+        if len(incentiveDustInputs) < 2:
+            raise InvalidTransactionConditionsException("Not enough dust")
+
+        incentiveOutput = StakingIncentiveBox(
+            appKit=stakingConfig.appKit,
+            stakingIncentiveContract=stakingConfig.stakingIncentiveContract,
+            value=dustCollected
+        )
+
+        txExecutorBox = ErgoBox(stakingConfig.appKit,stakingConfig.dustCollectionReward*len(incentiveDustInputs),stakingConfig.appKit.contractFromAddress(address))
+
+        self.inputs = incentiveDustInputs
+        self.outputs = [incentiveOutput.outBox,txExecutorBox.outBox]
+        self.fee = stakingConfig.dustCollectionMinerFee
+        self.changeAddress = address
+
+
 @dataclass
 class StakingConfig:
     appKit: ErgoAppKit

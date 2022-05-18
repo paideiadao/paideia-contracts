@@ -3,7 +3,7 @@ import traceback
 from ergo_python_appkit.appkit import ErgoAppKit
 from ergo_python_appkit.ErgoBox import ErgoBox
 from ergo_python_appkit.ErgoTransaction import ErgoTransaction
-from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, CreateAddStakeProxyTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig, UnstakeProxyBox, UnstakeTransaction
+from paideia_contracts.contracts.staking import AddStakeProxyBox, AddStakeTransaction, CompoundTransaction, ConsolidateDustTransaction, CreateAddStakeProxyTransaction, EmissionBox, EmitTransaction, StakeBox, StakePoolBox, StakeProxyBox, StakeStateBox, StakeTransaction, StakingIncentiveBox, PaideiaTestConfig, UnstakeProxyBox, UnstakeTransaction
 import pytest
 from sigmastate.lang.exceptions import InterpreterException
 
@@ -411,6 +411,27 @@ class TestStaking:
             unsignedTx.changeAddress=self.txOperator
             print(ErgoAppKit.unsignedTxToJson(unsignedTx.unsignedTx))
             self.appKit.signTransaction(unsignedTx.unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
+    def test_consolidate_dust(self):
+        dustInput1 = StakingIncentiveBox(
+            appKit=self.appKit,
+            stakingIncentiveContract=self.config.stakingIncentiveContract,
+            value=int(3e6)
+        ).inputBox()
+        dustInput2 = StakingIncentiveBox(
+            appKit=self.appKit,
+            stakingIncentiveContract=self.config.stakingIncentiveContract,
+            value=int(4e6)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = ConsolidateDustTransaction([dustInput1,dustInput2],self.config,self.txOperator).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
             signed = True
         except:
             traceback.print_exc()
