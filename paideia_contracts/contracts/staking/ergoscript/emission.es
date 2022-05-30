@@ -1,50 +1,217 @@
 {
-    // Emission
+    // ===== Contract Information ===== //
+    // Name: emission
+    // Description: Proxy contract that governs the emit and compound transactions for the Emission Box.
+    // Version: 1.0
+    // Author: Lui
+
+    // ===== Emission Box ===== //
     // Registers:
-    // 4:0 Long: Total amount staked
-    // 4:1 Long: Checkpoint
-    // 4:2 Long: Stakers
-    // 4:3 Long: Emission amount
-    // Assets:
-    // 0: Emission NFT: Identifier for emit box
-    // 1: Staked Tokens (ErgoPad): Tokens to be distributed
+    //   R4[Coll[Long]]:
+    //     0: Total Amount Staked
+    //     1: Checkpoint
+    //     2: Stakers
+    //     3: Emission Amount
+    // Tokens:
+    //   0: 
+    //     _1: Emission NFT: Identifier for the emission box.
+    //     _2: Amount: 1
+    //   1: 
+    //     _1: DAO Token ID: Tokens to be emitted by the DAO.
+    //     _2: Amount: <= DAO Token Emission Amount
 
-    val stakeStateNFT = _stakeStateNFT
-    val stakeTokenID = _stakeTokenID
-    val stakedTokenID = _stakedTokenID
-    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
-    val emission: BigInt = SELF.R4[Coll[Long]].get(3)
+    // ===== State State Box ===== //
+    // Registers:
+    //   R4[Coll[Long]]:
+    //     0: Total Amount Staked
+    //     1: Checkpoint
+    //     2: Stakers
+    //     3: Last Checkpoint Timestamp
+    //     4: Cycle Duration 
+    // Tokens:
+    //   0: 
+    //     _1: Stake State NFT: Identifier for the stake state box.
+    //     _2: Amount: 1  
+    //   1: 
+    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _2: Amount: <= 1 Billion
 
-    if (stakeStateInput && INPUTS(2).id == SELF.id) { // Emit transaction
-        val remainingAndDust = INPUTS(1).tokens(1)._2 + (if (SELF.tokens.size >= 2) SELF.tokens(1)._2 else 0L)
-        sigmaProp(allOf(Coll(
-            //Stake State, Stake Pool, Emission (self) => Stake State, Stake Pool, Emission
-            OUTPUTS(2).propositionBytes == SELF.propositionBytes,
-            OUTPUTS(2).R4[Coll[Long]].get(0) == INPUTS(0).R4[Coll[Long]].get(0),
-            OUTPUTS(2).R4[Coll[Long]].get(1) == INPUTS(0).R4[Coll[Long]].get(1),
-            OUTPUTS(2).R4[Coll[Long]].get(2) == INPUTS(0).R4[Coll[Long]].get(2),
-            OUTPUTS(2).R4[Coll[Long]].get(3) == (if (INPUTS(1).R4[Coll[Long]].get(0) < remainingAndDust) (INPUTS(1).R4[Coll[Long]].get(0)-INPUTS(1).R4[Coll[Long]].get(0)/100L) else remainingAndDust),
-            OUTPUTS(2).tokens(0)._1 == SELF.tokens(0)._1,
-            OUTPUTS(2).tokens(1)._1 == stakedTokenID,
-            OUTPUTS(2).tokens(1)._2 == OUTPUTS(2).R4[Coll[Long]].get(3)
-        )))
-    } else {
-    if (INPUTS(0).id == SELF.id) { // Compound transaction
-        // Emission (SELF), Stake*N => Emission, Stake*N
-        val stakeBoxes = INPUTS.filter({(box: Box) => if (box.tokens.size > 0) box.tokens(0)._1 == stakeTokenID && box.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1) else false})
-        val rewardsSum = stakeBoxes.fold(0.toBigInt, {(z: BigInt, box: Box) => z+(box.tokens(1)._2.toBigInt*emission/SELF.R4[Coll[Long]].get(0).toBigInt)})
-        val remainingTokens = if (SELF.tokens(1)._2 <= rewardsSum) OUTPUTS(0).tokens.size == 1 else (OUTPUTS(0).tokens(1)._1 == stakedTokenID && OUTPUTS(0).tokens(1)._2 >= (SELF.tokens(1)._2 - rewardsSum))
-        sigmaProp(allOf(Coll(
-            OUTPUTS(0).propositionBytes == SELF.propositionBytes,
-            OUTPUTS(0).tokens(0)._1 == SELF.tokens(0)._1,
-            remainingTokens,
-            OUTPUTS(0).R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0),
-            OUTPUTS(0).R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
-            OUTPUTS(0).R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - stakeBoxes.size,
-            OUTPUTS(0).R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3)
-        )))
-    } else {
-        sigmaProp(false)
+    // ===== Stake Pool Box ===== //
+    // Registers:
+    //   R4[Long]: Emission Amount
+    // Tokens:
+    //   0:
+    //     _1: Stake Pool NFT: Identifier for the stake pool box.
+    //     _2: Amount: 1
+    //   1:
+    //     _1: DAO Token ID: Token issued by the DAO
+    //     _2: Amount: <= Total DAO Tokens Amount
+
+    // ===== Stake Box ===== //
+    // Registers:
+    //   R4[Coll[Long]]:
+    //     0: Checkpoint
+    //     1: Staking Time
+    //   R5[Coll[Byte]]: Stake Key ID // ID of the stake key used for unstaking.
+    // Tokens:
+    //   0:
+    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _2: Amount: 1
+    //   1:
+    //     _1: DAO Token: Token issued by the DAO, which the user wishes to stake.
+    //     _2: Amount: > 0
+
+    // ===== Emit Tx ===== //
+    // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
+    // Inputs: StakeStateBox, StakePoolBox, EmissionBox
+    // DataInputs: None
+    // Context Extension Variables: None
+    // Outputs: NewStateStateBox, NewStakePoolBox, NewEmissionBox
+
+    // ===== Compound Tx ===== //
+    // Description: Distribute the funds from the new emission box to the stake boxes.
+    // Inputs: EmissionBox, StakeBoxes
+    // DataInputs: None
+    // Context Extension Variables: None
+    // Outputs: NewEmissionBox, NewStakeBoxes
+
+    // ===== Hard-Coded Constants ===== //
+    val StakeStateNFT: Coll[Byte] = _stakeStateNFT  // NFT identifying the StakeStateBox.
+    val StakeTokenID: Coll[Byte] = _stakTokenID     // Token proving that the StakeBox was created properly.
+    val StakedTokenID: Coll[Byte] = _stakedTokenID  // Token identifier for the token distributed by the DAO. 
+    
+    // ===== Perform Emit Tx ===== //
+
+    // Check conditions for a valid Emit Tx
+    val validEmit: Boolean = {
+
+        // Emit Tx inputs
+        val stakeStateBox: Box = INPUTS(0)
+        val stakePoolBox: Box = INPUTS(1)     
+        val emissionBox: Box = INPUTS(2)
+
+        // Emit Tx outputs
+        val newStakeStateBox: Box = OUTPUTS(0)
+        val newStakePoolBox: Box = OUTPUTS(1)
+        val newEmissionBox: Box = OUTPUTS(2)
+
+        // Calculate the remaining stake pool tokens and the leftover dust tokens within the current emission box
+        val remainingStakePoolTokensAndEmissionDust: Long = stakePoolBox.tokens(1)._2 + (if (SELF.tokens.size >= 2) SELF.tokens(1)._2 else 0L)
+
+        // Check conditions for valid inputs
+        val validEmitInputs: Boolean = {
+
+            allOf(Coll(
+                (stakeStateBox.tokens(0)._1 == StakeStateNFT),  // Check that the state stake box contains the correct NFT identifier
+                (emissionBox.id == SELF.id)                     // Check that the second input box is the current emission box with the correct box id
+            ))
+
+        }
+
+        // Check conditions for a valid new emission box
+        val validNewEmissionBox: Boolean = {
+
+            allOf(Coll(
+
+                // Check that the new emission box is governed by the same contract as this current emission box
+                (newEmissionBox.propositionBytes == SELF.propositionBytes),
+
+                // Check that the Total Amount Staked, Checkpoint, and Stakers values in the new emission box are the same as the input stake state box
+                (newEmissionBox.R4[Coll[Long]].get.slice(0, 3) == stakeStateBox.R4[Coll[Long]].get.slice(0, 3)),
+                
+                // Update the emission amount of the new emission box, which will contain 99% of the allotted emission amount designated within R4 of the stake pool box - the remaining 1% goes to the ErgoPad treasury
+                (newEmissionBox.R4[Coll[Long]].get(3) == (if (stakePoolBox.R4[Coll[Long]].get(0) < remainingStakePoolTokensAndEmissionDust) (stakePoolBox.R4[Coll[Long]].get(0) - (stakePoolBox.R4[Coll[Long]].get(0) / 100L)) else remainingStakePoolTokensAndEmissionDust)),
+            
+                // Check that the new emission box contains the same emission NFT token id as the current emission box
+                (newEmissionBox.tokens(0)._1 == SELF.tokens(0)._1),
+
+                // Check that the new emission box contains the same issued DAO token id as the current emission box
+                (newEmissionBox.tokens(1)._1 == StakedTokenID),
+
+                // Check that the new emission box contains the same amount of emission DAO tokens designated within R4 of the new emission box, which corresponds to the allotted emission amount designated within R4 of the stake pool box
+                (newEmissionBox.tokens(1)._2 == newEmissionBox.R4[Coll[Long]].get(3)) 
+
+            ))
+
+        }
+
+        // All conditions must be valid for an emission tx
+        allOf(Coll(
+            validEmitInputs,
+            validNewEmissionBox
+        ))
+
     }
+
+    // ===== Perform Compound Tx ===== //
+
+    // Check conditions for a valid compound tx
+    val validCompound: Boolean = {
+
+        // Compount Tx inputs
+        val emissionBox: Box = INPUTS(0)
+        val stakeBoxes: Coll[Box] = INPUTS.filter({(stakeBox: Box) => if (stakeBox.tokens.size > 0) (stakeBox.tokens(0)._1 == StakeTokenID) && (stakeBox.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1)) else false}) // Get stake boxes with the same checkpoint time as the current emission box
+
+        // Compount Tx outputs
+        val newEmissionBox: Box = OUTPUTS(0)
+
+        // Calculate emission amount, total distributed amount, and the remaining emission amount
+        val emissionAmount: BigInt = SELF.R4[Coll[Long]].get(3).toBigInt
+        val distributedAmount: BigInt = stakeBoxes.fold(0.toBigInt, {(acc: BigInt, stakeBox: Box) => acc + ((stakeBox.tokens(1)._2.toBigInt * emissionAmount) / SELF.R4[Coll[Long]].get(0).toBigInt)})
+        val remainingEmission: BigInt = SELF.tokens(1)._2 - distributedAmount
+
+        // Check for a valid compound tx input
+        val validCompoundInput: Boolean = {
+            (emissionBox.id == SELF.id)  // Check that the first input box is the current emission box with the same box id
+        }
+
+        // Check for valid emission output box
+        val validNewEmissionBox: Boolean = {
+
+            // Check that the correct amount of emission tokens are remaining
+            val validRemainingEmission: Boolean = {
+
+                // Check if the amount of emission tokens for this current emission box is less than the total distributed amount
+                if (SELF.tokens(1)._2 <= distributedAmount) {
+                    newEmissionBox.tokens.size == 1  // There should not be any emission tokens in the new emission box
+                } else {
+                    (newEmissionBox.tokens(1)._1 == StakedTokenID) && (newEmissionBox.tokens(1)._2 >= remainingEmission) // The new emission box contains the remaining emission tokens after distribution
+                }
+
+            }
+
+            allOf(Coll(
+
+                // Check that the new emission box is governed by the same contract as this current emission box
+                (newEmissionBox.propositionBytes == SELF.propositionBytes),
+
+                // Check that the new emission box contains the same emission NFT token id as the current emission box
+                (newEmissionBox.tokens(0)._1 == SELF.tokens(0)._1),
+
+                // Check for the correct amount of remaining tokens in the new emission box
+                validRemainingEmission,
+
+                // Check that the new emission box maintains the same Total Amount Staked and Checkpoint time
+                (newEmissionBox.R4[Coll[Long]].get.slice(0, 2) == SELF.R4[Coll[Long]].get.slice(0, 2)),
+
+                // Check that the amount of stakers who received funds are substracted from the total of the current cycle
+                (newEmissionBox.R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - stakeBoxes.size),
+
+                // Check that the alloted emission amount remains the same for the new emission box
+                (newEmissionBox.R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3)) 
+
+            ))
+
+        }
+
+        // All conditions must be valid for a compound tx
+        allOf(Coll(
+            validCompoundInput,
+            validNewEmissionBox
+        ))
+
     }
+
+    sigmaProp(validEmit || validCompound)
+
   }
