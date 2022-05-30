@@ -214,4 +214,4 @@
 
     sigmaProp(validEmit || validCompound)
 
-  }
+}
