@@ -20,7 +20,7 @@
     //     _1: DAO Token ID: Tokens to be emitted by the DAO.
     //     _2: Amount: <= DAO Token Emission Amount
 
-    // ===== State State Box ===== //
+    // ===== Stake State Box ===== //
     // Registers:
     //   R4[Coll[Long]]:
     //     0: Total Amount Staked
@@ -66,7 +66,7 @@
     // Inputs: StakeStateBox, StakePoolBox, EmissionBox
     // DataInputs: None
     // Context Extension Variables: None
-    // Outputs: NewStateStateBox, NewStakePoolBox, NewEmissionBox
+    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox
 
     // ===== Compound Tx ===== //
     // Description: Distribute the funds from the new emission box to the stake boxes.
@@ -197,7 +197,7 @@
                 // Check that the amount of stakers who received funds are substracted from the total of the current cycle
                 (newEmissionBox.R4[Coll[Long]].get(2) == SELF.R4[Coll[Long]].get(2) - stakeBoxes.size),
 
-                // Check that the alloted emission amount remains the same for the new emission box
+                // Check that the allotted emission amount remains the same for the new emission box
                 (newEmissionBox.R4[Coll[Long]].get(3) == SELF.R4[Coll[Long]].get(3)) 
 
             ))
