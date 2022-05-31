@@ -166,16 +166,16 @@
             // Get stake boxes with the same checkpoint time as the current emission box
             val stakeBoxes: Coll[Box] = INPUTS.filter({(stakeBox: Box) => if (stakeBox.tokens.size > 0) (stakeBox.tokens(0)._1 == StakeTokenID) && (stakeBox.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1)) else false})
 
-            // Calculate emission amount, total distributed amount, and the remaining emission amount
-            val emissionAmount: BigInt = SELF.R4[Coll[Long]].get(3).toBigInt
-            val distributedAmount: BigInt = stakeBoxes.fold(0.toBigInt, {(acc: BigInt, stakeBox: Box) => acc + ((stakeBox.tokens(1)._2.toBigInt * emissionAmount) / SELF.R4[Coll[Long]].get(0).toBigInt)})
-            val remainingEmission: BigInt = SELF.tokens(1)._2 - distributedAmount
-
             // Check for valid emission output box
             val validNewEmissionBox: Boolean = {
 
                 // Check that the correct amount of emission tokens are remaining
                 val validRemainingEmission: Boolean = {
+
+                    // Calculate emission amount, total distributed amount, and the remaining emission amount
+                    val emissionAmount: BigInt = SELF.R4[Coll[Long]].get(3).toBigInt
+                    val distributedAmount: BigInt = stakeBoxes.fold(0.toBigInt, {(acc: BigInt, stakeBox: Box) => acc + ((stakeBox.tokens(1)._2.toBigInt * emissionAmount) / SELF.R4[Coll[Long]].get(0).toBigInt)})
+                    val remainingEmission: BigInt = SELF.tokens(1)._2 - distributedAmount
 
                     // Check if the amount of emission tokens for this current emission box is less than the total distributed amount
                     if (SELF.tokens(1)._2 <= distributedAmount) {
