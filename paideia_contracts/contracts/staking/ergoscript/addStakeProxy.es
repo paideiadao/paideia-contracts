@@ -12,30 +12,49 @@
     val executorReward = _executorReward
     val minerFee = _minerFee
 
-    if (INPUTS(0).tokens(0)._1 == stakeStateNFT) {
-        sigmaProp(
+    val userPropositionBytes : Coll[Byte] = SELF.R5[Coll[Byte]].get
+
+    val addStakeTx : Boolean = {
+
+        val validAddStakeTxInput : Boolean = INPUTS(0).tokens(0)._1 == stakeStateNFT
+
+        if (validAddStakeTxInput) {
+            val stakeInput : Box = INPUTS(1)
+            val stakeOutput : Box = OUTPUTS(1)
+            val userOutput : Box = OUTPUTS(2)
+            val incentiveOutput : Box = OUTPUTS(3)
+            val txExecutorOutput : Box = OUTPUTS(4)
+            val minerOutput : Box = OUTPUTS(5)
+            val stakeKey : Coll[Byte] = stakeOutput.R5[Coll[Byte]].get
+         
             allOf(Coll(
-                OUTPUTS(1).tokens(1)._2 == INPUTS(1).tokens(1)._2 + SELF.tokens(1)._2,
-                OUTPUTS(1).tokens(1)._1 == SELF.tokens(1)._1,
+                stakeOutput.tokens(1)._2 == stakeInput.tokens(1)._2 + SELF.tokens(1)._2,
+                stakeOutput.tokens(1)._1 == SELF.tokens(1)._1,
                 //Stake key
-                OUTPUTS(2).propositionBytes == SELF.R5[Coll[Byte]].get,
-                OUTPUTS(2).tokens(0)._1 == OUTPUTS(1).R5[Coll[Byte]].get,
-                OUTPUTS(2).tokens(0)._2 == 1L,
-                blake2b256(OUTPUTS(3).propositionBytes) == stakingIncentiveContract,
-                OUTPUTS(3).value == toStakingIncentive,
-                OUTPUTS(4).value == executorReward,
-                OUTPUTS(5).value == minerFee,
+                userOutput.propositionBytes == userPropositionBytes,
+                userOutput.tokens(0)._1 == stakeKey,
+                userOutput.tokens(0)._2 == 1L,
+                blake2b256(incentiveOutput.propositionBytes) == stakingIncentiveContract,
+                incentiveOutput.value == toStakingIncentive,
+                txExecutorOutput.value == executorReward,
+                minerOutput.value == minerFee,
                 OUTPUTS.size == 6
             ))
-        )
-    } else {
-        sigmaProp(
-            allOf(Coll(
-                OUTPUTS(0).propositionBytes == SELF.R5[Coll[Byte]].get,
-                OUTPUTS(0).value == SELF.value - 1000000,
-                OUTPUTS(0).tokens == SELF.tokens,
-                OUTPUTS.size == 2
-            ))
-        )
+        } else {
+            false
+        }
     }
+
+    val refundTx : Boolean = {
+        val userOutput : Box = OUTPUTS(0)
+
+        allOf(Coll(
+            userOutput.propositionBytes == userPropositionBytes,
+            userOutput.value == SELF.value - 1000000,
+            userOutput.tokens == SELF.tokens,
+            OUTPUTS.size == 2
+        ))
+    }
+
+    sigmaProp(addStakeTx || refundTx)
 }
