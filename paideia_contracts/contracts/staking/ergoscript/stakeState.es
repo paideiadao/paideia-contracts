@@ -42,7 +42,9 @@
         stakeStateOutput.tokens.size == 2
     ))
 
-    if (OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1) { // Stake transaction
+    val validStakeTxInput : Boolean = OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1
+
+    val stakeTx : Boolean = if (validStakeTxInput) {
 
         val stakeOutput : Box   = OUTPUTS(1)
 
@@ -53,7 +55,7 @@
 
             val stakeProxyInput : Box = INPUTS(1)
 
-            sigmaProp(allOf(Coll(
+            allOf(Coll(
                 selfReplication,
                 // Stake State
                 totalAmountStakedOut == totalAmountStaked + stakeOutput.tokens(1)._2,
@@ -74,23 +76,23 @@
                 userOutput.propositionBytes == stakeProxyInput.R5[Coll[Byte]].get,
                 userOutput.tokens(0)._1 == stakeOutput.R5[Coll[Byte]].get,
                 userOutput.tokens(0)._2 == 1L
-            )))
+            ))
         } else {
             // Stake State (SELF), Stake, AddStakeProxy => Stake State, Stake, Stake Key (User)
 
             val stakeInput : Box            = INPUTS(1)
 
-            val addStakeProxyInput : Box    = INPUTS(2)
+            val addStakeProxyInput : Box    = INPUTS.getOrElse(2,INPUTS(0))
 
-            sigmaProp(allOf(Coll(
+            allOf(Coll(
                 selfReplication,
                 // Stake State
-                totalAmountStakedOut == totalAmountStaked + stakeOutput.tokens(1)._2 - stakeInput.tokens(1)._2,
+                totalAmountStakedOut == totalAmountStaked + stakeOutput.tokens(1)._2 - stakeInput.tokens.getOrElse(1,(Coll[Byte](),0L))._2,
                 checkpointOut == checkpoint,
                 stakersOut == stakers,
                 checkpointTimestampOut == checkpointTimestamp,
                 stakeStateOutput.tokens(1)._2 == SELF.tokens(1)._2,
-                // Stake
+                // // Stake
                 blake2b256(stakeOutput.propositionBytes) == stakeContract,
                 blake2b256(stakeInput.propositionBytes) == stakeContract,
                 stakeOutput.R4[Coll[Long]].get(0) == checkpoint,
@@ -99,35 +101,43 @@
                 stakeOutput.tokens(0)._1 == SELF.tokens(1)._1,
                 stakeOutput.tokens(0)._2 == 1L,
                 stakeOutput.tokens(1)._1 == stakedTokenID,
-                stakeOutput.tokens(1)._2 == stakeInput.tokens(1)._2 + INPUTS(2).tokens(1)._2,
+                stakeOutput.tokens(1)._2 == stakeInput.tokens.getOrElse(1,(Coll[Byte](),0L))._2 + addStakeProxyInput.tokens(1)._2,
                 //Stake key
                 userOutput.tokens(0)._1 == stakeOutput.R5[Coll[Byte]].get,
                 userOutput.tokens(0)._2 == 1L
-            )))
+            ))
         }
-  } else {
-  if (INPUTS(1).tokens(0)._1 == stakePoolNFT && INPUTS.size >= 3) { // Emit transaction
-        // Stake State (SELF), Stake Pool, Emission => Stake State, Stake Pool, Emission
-        val emissionInput : Box = INPUTS(2)
-        sigmaProp(allOf(Coll(
-            selfReplication,
-            //Emission INPUT
-            emissionInput.tokens(0)._1 == emissionNFT,
-            emissionInput.R4[Coll[Long]].get(1) == checkpoint - 1L,
-            emissionInput.R4[Coll[Long]].get(2) == 0L,
-            //Stake State
-            checkpointOut == checkpoint + 1L,
-            stakersOut == stakers,
-            checkpointTimestampOut == checkpointTimestamp + SELF.R4[Coll[Long]].get(4),
-            checkpointTimestampOut < blockTime,
-            stakeStateOutput.tokens(1)._2 == SELF.tokens(1)._2
-        )))
-  } else {
-  if (totalAmountStaked > totalAmountStakedOut && INPUTS.size >= 3 && INPUTS(1).tokens.size > 1) { // Unstake
+    } else {
+        false
+    }
+
+    val validEmitTxInput : Boolean = if (!validStakeTxInput) INPUTS(1).tokens(0)._1 == stakePoolNFT && INPUTS.size >= 3 else false
+    val emitTx : Boolean = if (validEmitTxInput) { // Emit transaction
+            // Stake State (SELF), Stake Pool, Emission => Stake State, Stake Pool, Emission
+            val emissionInput : Box = INPUTS(2)
+            allOf(Coll(
+                selfReplication,
+                //Emission INPUT
+                emissionInput.tokens(0)._1 == emissionNFT,
+                emissionInput.R4[Coll[Long]].get(1) == checkpoint - 1L,
+                emissionInput.R4[Coll[Long]].get(2) == 0L,
+                //Stake State
+                checkpointOut == checkpoint + 1L,
+                stakersOut == stakers,
+                checkpointTimestampOut == checkpointTimestamp + SELF.R4[Coll[Long]].get(4),
+                checkpointTimestampOut < blockTime,
+                stakeStateOutput.tokens(1)._2 == SELF.tokens(1)._2
+            ))
+    } else {
+        false
+    }
+
+    val validUnstakeTxInput : Boolean = if (!(validStakeTxInput || validEmitTxInput)) totalAmountStaked > totalAmountStakedOut && INPUTS.size >= 3 && INPUTS(1).tokens.size > 1 else false
+    val unstakeTx : Boolean = if (validUnstakeTxInput) { // Unstake
       // // Stake State (SELF), Stake, UnstakeProxy => Stake State, User Wallet, Stake (optional for partial unstake)
         val stakeInput : Box        = INPUTS(1)
         
-        val unstakeProxyInput : Box = INPUTS(2)
+        // val unstakeProxyInput : Box = INPUTS(2)
 
         val userOutput : Box        = OUTPUTS(1)
 
@@ -135,9 +145,9 @@
         val stakeKey : Coll[Byte]   = stakeInput.R5[Coll[Byte]].get
         val remaining : Long        = stakeInput.tokens(1)._2 - unstaked
 
-        sigmaProp(allOf(Coll(
+        allOf(Coll(
             selfReplication,
-            unstakeProxyInput.tokens(0)._1 == stakeKey,
+            // unstakeProxyInput.tokens(0)._1 == stakeKey,
             stakeInput.R4[Coll[Long]].get(0) == checkpoint,
             //Stake State
             totalAmountStakedOut == totalAmountStaked-unstaked,
@@ -149,25 +159,29 @@
             userOutput.tokens(0)._2 == unstaked,
             if (remaining > 0L) {
                 val stakeOutput : Box = OUTPUTS(2)
+                val stakeOutputToken0 : (Coll[Byte],Long) = stakeOutput.tokens.getOrElse(0,(Coll[Byte](),0L))
+                val stakeOutputToken1 : (Coll[Byte],Long) = stakeOutput.tokens.getOrElse(1,(Coll[Byte](),0L))
+                val stakeOutputR4 : Coll[Long] = if (stakeOutput.R4[Coll[Long]].isDefined) stakeOutput.R4[Coll[Long]].get else Coll(-1L,-1L)
                 allOf(Coll(
-                    userOutput.tokens(1)._1 == stakeInput.R5[Coll[Byte]].get,
+                    userOutput.tokens.getOrElse(1,(Coll[Byte](),0L))._1 == stakeInput.R5[Coll[Byte]].get,
                     //Stake output
                     stakeOutput.value == stakeInput.value,
-                    stakeOutput.tokens(0)._1 == stakeInput.tokens(0)._1,
-                    stakeOutput.tokens(0)._2 == stakeInput.tokens(0)._2,
-                    stakeOutput.tokens(1)._1 == stakeInput.tokens(1)._1,
-                    stakeOutput.tokens(1)._2 == remaining,
+                    stakeOutputToken0._1 == stakeInput.tokens(0)._1,
+                    stakeOutputToken0._2 == stakeInput.tokens(0)._2,
+                    stakeOutputToken1._1 == stakeInput.tokens(1)._1,
+                    stakeOutputToken1._2 == remaining,
                     remaining >= minimumStake,
-                    stakeOutput.R4[Coll[Long]].get(0) == stakeInput.R4[Coll[Long]].get(0),
-                    stakeOutput.R4[Coll[Long]].get(1) == stakeInput.R4[Coll[Long]].get(1)
+                    stakeOutputR4(0) == stakeInput.R4[Coll[Long]].get(0),
+                    stakeOutputR4(1) == stakeInput.R4[Coll[Long]].get(1)
                 ))
             } else {
                 true
             }
-        )))
-  } else {
-      sigmaProp(false)
-  }
-  }
-  }
+        ))
+    } else {
+        false
+    }
+  
+    sigmaProp(stakeTx || emitTx || unstakeTx)
+
 }
