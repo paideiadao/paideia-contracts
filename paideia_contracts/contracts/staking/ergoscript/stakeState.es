@@ -10,27 +10,27 @@
     // 0: Stake State NFT: 1
     // 1: Stake Token: Stake token to be handed to Stake Boxes
 
-    val blockTime = CONTEXT.preHeader.timestamp
-    val stakedTokenID = _stakedTokenID
-    val stakePoolNFT = _stakePoolNFT
-    val emissionNFT = _emissionNFT
-    val stakeContract = _stakeContractHash
+    val blockTime : Long                = CONTEXT.preHeader.timestamp
+    val stakedTokenID : Coll[Byte]      = _stakedTokenID
+    val stakePoolNFT : Coll[Byte]       = _stakePoolNFT
+    val emissionNFT : Coll[Byte]        = _emissionNFT
+    val stakeContract : Coll[Byte]      = _stakeContractHash
 
-    val minimumStake : Long = 1000L
+    val minimumStake : Long             = 1000L
 
-    val stakeStateOutput : Box = OUTPUTS(0)
+    val stakeStateOutput : Box          = OUTPUTS(0)
 
-    val totalAmountStaked = SELF.R4[Coll[Long]].get(0)
-    val checkpoint = SELF.R4[Coll[Long]].get(1)
-    val stakers = SELF.R4[Coll[Long]].get(2)
-    val checkpointTimestamp = SELF.R4[Coll[Long]].get(3)
-    val cycleDuration = SELF.R4[Coll[Long]].get(4)
+    val totalAmountStaked : Long        = SELF.R4[Coll[Long]].get(0)
+    val checkpoint : Long               = SELF.R4[Coll[Long]].get(1)
+    val stakers : Long                  = SELF.R4[Coll[Long]].get(2)
+    val checkpointTimestamp : Long      = SELF.R4[Coll[Long]].get(3)
+    val cycleDuration : Long            = SELF.R4[Coll[Long]].get(4)
 
-    val totalAmountStakedOut = stakeStateOutput.R4[Coll[Long]].get(0)
-    val checkpointOut = stakeStateOutput.R4[Coll[Long]].get(1)
-    val stakersOut = stakeStateOutput.R4[Coll[Long]].get(2)
-    val checkpointTimestampOut = stakeStateOutput.R4[Coll[Long]].get(3)
-    val cycleDurationOut = stakeStateOutput.R4[Coll[Long]].get(4)
+    val totalAmountStakedOut : Long     = stakeStateOutput.R4[Coll[Long]].get(0)
+    val checkpointOut : Long            = stakeStateOutput.R4[Coll[Long]].get(1)
+    val stakersOut : Long               = stakeStateOutput.R4[Coll[Long]].get(2)
+    val checkpointTimestampOut : Long   = stakeStateOutput.R4[Coll[Long]].get(3)
+    val cycleDurationOut : Long         = stakeStateOutput.R4[Coll[Long]].get(4)
 
     val selfReplication = allOf(Coll(
         stakeStateOutput.propositionBytes == SELF.propositionBytes,
@@ -41,11 +41,12 @@
         cycleDurationOut == cycleDuration,
         stakeStateOutput.tokens.size == 2
     ))
+
     if (OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1) { // Stake transaction
 
-        val stakeOutput : Box = OUTPUTS(1)
+        val stakeOutput : Box   = OUTPUTS(1)
 
-        val userOutput : Box = OUTPUTS(2)
+        val userOutput : Box    = OUTPUTS(2)
 
         if (stakeStateOutput.tokens(1)._2 < SELF.tokens(1)._2) {
             // Stake State (SELF), Stake Proxy => Stake State, Stake, Stake Key (User)
@@ -77,9 +78,9 @@
         } else {
             // Stake State (SELF), Stake, AddStakeProxy => Stake State, Stake, Stake Key (User)
 
-            val stakeInput : Box = INPUTS(1)
+            val stakeInput : Box            = INPUTS(1)
 
-            val addStakeProxyInput : Box = INPUTS(2)
+            val addStakeProxyInput : Box    = INPUTS(2)
 
             sigmaProp(allOf(Coll(
                 selfReplication,
@@ -124,15 +125,15 @@
   } else {
   if (totalAmountStaked > totalAmountStakedOut && INPUTS.size >= 3 && INPUTS(1).tokens.size > 1) { // Unstake
       // // Stake State (SELF), Stake, UnstakeProxy => Stake State, User Wallet, Stake (optional for partial unstake)
-        val stakeInput : Box = INPUTS(1)
+        val stakeInput : Box        = INPUTS(1)
         
         val unstakeProxyInput : Box = INPUTS(2)
 
-        val userOutput : Box = OUTPUTS(1)
+        val userOutput : Box        = OUTPUTS(1)
 
-        val unstaked : Long = totalAmountStaked - totalAmountStakedOut
-        val stakeKey : Coll[Byte] = stakeInput.R5[Coll[Byte]].get
-        val remaining : Long = stakeInput.tokens(1)._2 - unstaked
+        val unstaked : Long         = totalAmountStaked - totalAmountStakedOut
+        val stakeKey : Coll[Byte]   = stakeInput.R5[Coll[Byte]].get
+        val remaining : Long        = stakeInput.tokens(1)._2 - unstaked
 
         sigmaProp(allOf(Coll(
             selfReplication,
