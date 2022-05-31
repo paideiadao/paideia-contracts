@@ -12,37 +12,60 @@
     val emissionNFT = _emissionNFT
     val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
 
-    if (INPUTS(0).tokens(0)._1 == emissionNFT) { // Compound transaction
+    val checkpoint : Long = SELF.R4[Coll[Long]].get(0)
+    val stakeTime : Long = SELF.R4[Coll[Long]].get(1)
+
+    val stakeKey : Coll[Byte] = SELF.R5[Coll[Byte]].get
+
+    val validCompoundTxInput : Boolean = INPUTS(0).tokens(0)._1 == emissionNFT
+
+    val compoundTx : Boolean = if (validCompoundTxInput) { // Compound transaction
         // Emission, Stake*N (SELF) => Emission, Stake * N
-        val boxIndex = INPUTS.indexOf(SELF,1)
-        val selfReplication = OUTPUTS(boxIndex)
-        sigmaProp(allOf(Coll(
+        val boxIndex : Long = INPUTS.indexOf(SELF,1)
+        val selfReplication : Box = OUTPUTS(boxIndex)
+        val emissionInput : Box = INPUTS(0)
+        val emissionAmount : BigInt = emissionInput.R4[Coll[Long]].get(3).toBigInt
+        val totalAmountStaked : Long = emissionInput.R4[Coll[Long]].get(0)
+        val staked : BigInt = SELF.tokens(1)._2.toBigInt
+        val reward : Long = emissionAmount * staked / totalAmountStaked
+        allOf(Coll(
             selfReplication.value == SELF.value,
             selfReplication.propositionBytes == SELF.propositionBytes,
-            selfReplication.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(0) + 1,
-            selfReplication.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get,
-            selfReplication.R4[Coll[Long]].get(1) == SELF.R4[Coll[Long]].get(1),
+            selfReplication.R4[Coll[Long]].get(0) == checkpoint + 1,
+            selfReplication.R5[Coll[Byte]].get == stakeKey,
+            selfReplication.R4[Coll[Long]].get(1) == stakeTime,
             selfReplication.tokens(0)._1 == SELF.tokens(0)._1,
             selfReplication.tokens(0)._2 == SELF.tokens(0)._2,
             selfReplication.tokens(1)._1 == SELF.tokens(1)._1,
-            selfReplication.tokens(1)._2 == SELF.tokens(1)._2 + (INPUTS(0).R4[Coll[Long]].get(3).toBigInt * SELF.tokens(1)._2.toBigInt / INPUTS(0).R4[Coll[Long]].get(0))
-        )))
+            selfReplication.tokens(1)._2 == SELF.tokens(1)._2 + reward
+        ))
     } else {
-    if (INPUTS(1).id == SELF.id) { // Unstake
-        if (OUTPUTS(0).R4[Coll[Long]].get(0) < INPUTS(0).R4[Coll[Long]].get(0)) { //Unstake
-            val selfReplication = if (OUTPUTS(2).propositionBytes == SELF.propositionBytes)
-                                    if (OUTPUTS(2).R5[Coll[Byte]].isDefined)
-                                    OUTPUTS(2).R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get &&
-                                    OUTPUTS(1).tokens(1)._1 == INPUTS(1).R5[Coll[Byte]].get
+        false
+    }
+
+    val validUnstakeTxInput : Boolean = if (!validCompoundTxInput) INPUTS(1).id == SELF.id && OUTPUTS(0).R4[Coll[Long]].get(0) < INPUTS(0).R4[Coll[Long]].get(0) else false
+
+    val unstakeTx = if (validUnstakeTxInput) { // Unstake
+
+        val userOutput : Box = OUTPUTS(1)
+
+        val optionalStakeOutput : Box = OUTPUTS(2)
+
+        val selfReplication = if (optionalStakeOutput.propositionBytes == SELF.propositionBytes)
+                                    if (optionalStakeOutput.R5[Coll[Byte]].isDefined)
+                                        optionalStakeOutput.R5[Coll[Byte]].get == stakeKey &&
+                                        userOutput.tokens(1)._1 == SELF.R5[Coll[Byte]].get
                                     else
-                                    false
+                                        false
                                 else true
-            sigmaProp(stakeStateInput && selfReplication) //Stake state handles logic here to minimize stake box size
-        } else { // Add stake
-            sigmaProp(stakeStateInput)
-        }
+        stakeStateInput && selfReplication //Stake state handles logic here to minimize stake box size
     } else {
-        sigmaProp(false)
+        false
     }
-    }
+
+    val validAddStakeTxInput : Boolean = if (!(validUnstakeTxInput || validCompoundTxInput)) INPUTS(1).id == SELF.id else false
+
+    val addStakeTx : Boolean = if (validAddStakeTxInput) stakeStateInput else false
+    
+    sigmaProp(compoundTx || unstakeTx || addStakeTx)
 }

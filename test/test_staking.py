@@ -59,6 +59,92 @@ class TestStaking:
             traceback.print_exc()
         assert signed
 
+    def test_emit_empty(self):
+        stakeStateInput = StakeStateBox(
+            appKit=self.appKit,
+            stakeStateContract=self.config.stakeStateContract,
+            checkpoint=1,
+            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 86400001),
+            amountStaked=10000000,
+            cycleDuration=86400000,
+            stakers=10
+            ).inputBox()
+        stakePoolInput = StakePoolBox(
+            appKit=self.appKit,
+            stakePoolContract=self.config.stakePoolContract,
+            emissionAmount=293000,
+            remaining=900000000
+        ).inputBox()
+        emissionInput = EmissionBox(
+            appKit=self.appKit,
+            emissionContract=self.config.emissionContract,
+            emissionRemaining=0,
+            amountStaked=9569595,
+            checkpoint=0,
+            stakers=0,
+            emissionAmount=293000
+        ).inputBox()
+        stakingIncentiveInput = StakingIncentiveBox(
+            appKit=self.appKit,
+            stakingIncentiveContract=self.config.stakingIncentiveContract,
+            value=int(1e9)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = EmitTransaction(
+                stakeStateInput=stakeStateInput,
+                stakePoolInput=stakePoolInput,
+                emissionInput=emissionInput,
+                stakingIncentiveInput=stakingIncentiveInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            ).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
+    def test_compound_single(self):
+        emissionInput = EmissionBox(
+            appKit=self.appKit,
+            emissionContract=self.config.emissionContract,
+            emissionRemaining=271161000,
+            amountStaked=37619804,
+            checkpoint=126,
+            stakers=2,
+            emissionAmount=271161000
+        ).inputBox()
+        stakeBox1 = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=126,
+            stakeTime=0,
+            amountStaked=37619804,
+            stakeKey=self.config.stakedTokenId #this value doesnt matter here
+        ).inputBox()
+        stakingIncentiveInput = StakingIncentiveBox(
+            appKit=self.appKit,
+            stakingIncentiveContract=self.config.stakingIncentiveContract,
+            value=int(4953000000)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = CompoundTransaction(
+                emissionInput=emissionInput,
+                stakeInputs=[stakeBox1],
+                stakingIncentiveInput=stakingIncentiveInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            ).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
     def test_compound(self):
         emissionInput = EmissionBox(
             appKit=self.appKit,
@@ -436,3 +522,58 @@ class TestStaking:
         except:
             traceback.print_exc()
         assert signed
+
+    def test_steal_stake(self):
+        stakeInput = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=int(118),
+            stakeTime=int(1652544797403),
+            amountStaked=int(15727686),
+            stakeKey="4d82471b2ec40ad3b301dbb5f0e62a5b7edbcdf3ec7dec1324b89f7d5ed65555"
+        ).inputBox("8a5917f284b2071db8cbd8cebe9ba793b244d67694ef4382693d0751837e1be4",1)
+
+        otherStakeInput = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=int(118),
+            stakeTime=int(1652544797403),
+            amountStaked=int(15727686),
+            stakeKey="4d82471b2ec40ad3b301dbb5f0e62a5b7edbcdf3ec7dec1324b89f7d5ed65555"
+        ).inputBox("8a5917f284b2071db8cbd8cebe9ba793b244d67694ef4382693d0751837e1ce4",2)
+
+        stakeStateInput = StakeStateBox(
+            appKit=self.appKit,
+            stakeStateContract=self.config.stakeStateContract,
+            checkpoint=int(118),
+            checkpointTime=int(1652691854000),
+            amountStaked=int(32016997958),
+            cycleDuration=int(3600000),
+            stakers=2
+            ).inputBox(txId="2f7b078dac5d369c4e1f1c1d9002d4eecf6ee62c3d8fed6579aa015c19133b1c",index=0)
+
+        addStakeProxyInput = AddStakeProxyBox(
+            appKit=self.appKit,
+            addStakeProxyContract=self.config.addStakeProxyContract,
+            amountToStake=int(10000000),
+            userErgoTree="0008cd026443d32bf23bce582b279abd85e128bc26ecb7d8ea1a9ceb87481db90fd80997",
+            stakeBox=StakeBox.fromInputBox(stakeInput, self.config.stakeContract)
+        ).inputBox("674a706612ab9fa91349dd851dece20a6cb1fed53e27f1733323b8e7d48e04fb",0)
+
+        stealingOutput = ErgoBox(self.appKit,value=int(1e5),contract=self.appKit.dummyContract(),tokens={otherStakeInput.getTokens()[0].getId(): 1, otherStakeInput.getTokens()[1].getId(): int(15727686)}).outBox
+
+        with pytest.raises(InterpreterException):
+            addStakeTransaction = AddStakeTransaction(
+                stakeStateInput=stakeStateInput,
+                stakeInput=stakeInput,
+                addStakeProxyInput=addStakeProxyInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            )
+            addStakeTransaction.inputs.append(otherStakeInput)
+            addStakeTransaction.inputs[2] = ErgoBox(self.appKit,value=addStakeProxyInput.getValue(),contract=self.appKit.dummyContract(),
+                tokens={addStakeProxyInput.getTokens()[0].getId(): 1, addStakeProxyInput.getTokens()[1].getId(): 10000000},registers=list(addStakeProxyInput.getRegisters())).inputBox()
+            addStakeTransaction.outputs.append(stealingOutput)
+            unsignedTx = addStakeTransaction.unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
