@@ -1197,8 +1197,6 @@ def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
         dustCollectionMinerFee = int(1e6),
         emitReward = int(3e6),
         emitMinerFee = int(1e6),
-        emitReward = int(3e6),
-        emitMinerFee = int(1e6),
         baseCompoundReward = int(5e5),
         baseCompoundMinerFee = int(1e6),
         variableCompoundReward = int(15e4),
