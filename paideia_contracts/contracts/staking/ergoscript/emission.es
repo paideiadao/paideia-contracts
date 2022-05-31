@@ -111,7 +111,7 @@
             val validNewEmissionBox: Boolean = {
 
                 // Calculate the remaining stake pool tokens and the leftover dust tokens within the current emission box
-                val remainingStakePoolTokensAndEmissionDust: Long = stakePoolBox.tokens(1)._2 + (if (SELF.tokens.size >= 2) SELF.tokens(1)._2 else 0L)
+                val remainingStakePoolTokensAndEmissionDust: Long = stakePoolBox.tokens(1)._2 + SELF.tokens.getOrElse(1,(Coll[Byte](),0L))._2
 
                 allOf(Coll(
 
