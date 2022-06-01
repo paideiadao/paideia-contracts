@@ -7,9 +7,9 @@
     // 0: Stake Pool NFT
     // 1: Remaining Staked Tokens for future distribution (ErgoPad)
 
-    val stakeStateNFT = _stakeStateNFT
-    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
-    val emissionFeeAddress = _emissionFeeAddress
+    val stakeStateNFT : Coll[Byte] = _stakeStateNFT
+    val stakeStateInput : Boolean = INPUTS(0).tokens(0)._1 == stakeStateNFT
+    val emissionFeeAddress : Coll[Byte] = _emissionFeeAddress
 
     val emissionAmount : Long = SELF.R4[Coll[Long]].get(0)
     
