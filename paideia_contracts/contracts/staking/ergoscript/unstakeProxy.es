@@ -5,34 +5,56 @@
     //assets:
     //stake key
 
-    val stakeStateNFT = _stakeStateNFT
-    val stakingIncentiveContract = _stakingIncentiveContract
-    val toStakingIncentive = _toStakingIncentive
-    val executorReward = _executorReward
-    val minerFee = _minerFee
+    val stakeStateNFT : Coll[Byte] = _stakeStateNFT
+    val stakingIncentiveContract : Coll[Byte] = _stakingIncentiveContract
+    val toStakingIncentive : Long = _toStakingIncentive
+    val executorReward : Long = _executorReward
+    val minerFee : Long = _minerFee
 
-    if (INPUTS(0).tokens(0)._1 == stakeStateNFT) {
-        val stakeBoxOutput = if (INPUTS(1).tokens(1)._2 > SELF.R4[Coll[Long]].get(0)) 1 else 0
-        sigmaProp(
-            allOf(Coll(
-                OUTPUTS(1).propositionBytes == SELF.R5[Coll[Byte]].get,
-                if (stakeBoxOutput == 1) OUTPUTS(1).tokens(1) == SELF.tokens(0) else true,
-                OUTPUTS(1).tokens(0)._2 == SELF.R4[Coll[Long]].get(0),
-                blake2b256(OUTPUTS(2+stakeBoxOutput).propositionBytes) == stakingIncentiveContract,
-                OUTPUTS(2+stakeBoxOutput).value == toStakingIncentive,
-                OUTPUTS(3+stakeBoxOutput).value == executorReward,
-                OUTPUTS(4+stakeBoxOutput).value == minerFee,
-                OUTPUTS.size == 5+stakeBoxOutput
-            ))
-        )
+    val userPropositionBytes : Coll[Byte] = SELF.R5[Coll[Byte]].get
+
+    val validUnstakeTxInput : Boolean = INPUTS(0).tokens(0)._1 == stakeStateNFT
+
+    val unstakeTx : Boolean = if (validUnstakeTxInput) {
+        val stakeBoxOutput : Int = if (INPUTS(1).tokens(1)._2 > SELF.R4[Coll[Long]].get(0)) 1 else 0
+
+        val stakeKey : (Coll[Byte],Long) = SELF.tokens(0)
+
+        val userOutput : Box = OUTPUTS(1)
+
+        val incentiveOutput : Box = OUTPUTS(2+stakeBoxOutput)
+
+        val txOperatorOutput : Box = OUTPUTS(3+stakeBoxOutput)
+
+        val minerOutput : Box = OUTPUTS(4+stakeBoxOutput)
+
+        val amountToUnstake : Long = SELF.R4[Coll[Long]].get(0)
+
+        allOf(Coll(
+            userOutput.propositionBytes == userPropositionBytes,
+            if (stakeBoxOutput == 1) userOutput.tokens(1) == stakeKey else true,
+            userOutput.tokens(0)._2 == amountToUnstake,
+            blake2b256(incentiveOutput.propositionBytes) == stakingIncentiveContract,
+            incentiveOutput.value == toStakingIncentive,
+            txOperatorOutput.value == executorReward,
+            minerOutput.value == minerFee,
+            OUTPUTS.size == 5+stakeBoxOutput
+        ))
     } else {
-        sigmaProp(
-            allOf(Coll(
-                OUTPUTS(0).propositionBytes == SELF.R5[Coll[Byte]].get,
-                OUTPUTS(0).value == SELF.value - 1000000,
-                OUTPUTS(0).tokens == SELF.tokens,
-                OUTPUTS.size == 2
-            ))
-        )
+        false
     }
+
+    val refundTx : Boolean = if (!unstakeTx) {
+        val userOutput : Box = OUTPUTS(0)
+        allOf(Coll(
+            userOutput.propositionBytes == userPropositionBytes,
+            userOutput.value == SELF.value - 1000000,
+            userOutput.tokens == SELF.tokens,
+            OUTPUTS.size == 2
+        ))
+    } else {
+        false
+    }
+
+    sigmaProp(unstakeTx || refundTx)
 }
