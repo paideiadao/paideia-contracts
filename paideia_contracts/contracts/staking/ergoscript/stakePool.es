@@ -45,6 +45,7 @@
             stakePoolOutput.tokens(0)._1 == SELF.tokens(0)._1,
             tokensRemaining,
             stakePoolOutput.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get,
+            stakePoolOutput.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get,
             stakeStateOutput.R4[Coll[Long]].get(0) == totalAmountStaked + (emissionAmount-feeAmount) - dust,
             if (stakePoolOutput.tokens.size > 1) {
                 allOf(Coll(
