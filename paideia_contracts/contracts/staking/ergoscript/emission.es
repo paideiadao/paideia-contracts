@@ -1,11 +1,11 @@
 {
     // ===== Contract Information ===== //
     // Name: emission
-    // Description: Contract that governs the emit and compound transactions for the Emission Box.
+    // Description: Contract that governs the emit and compound transactions for the emission box.
     // Version: 1.0
     // Authors: Lui, Luca
 
-    // ===== Emission Box ===== //
+    // ===== Emission Box (SELF) ===== //
     // Registers:
     //   R4[Coll[Long]]:
     //     0: Total Amount Staked
@@ -39,12 +39,13 @@
     // ===== Stake Pool Box ===== //
     // Registers:
     //   R4[Long]: Emission Amount
+    //   R5[Coll[Byte]]: Stake Pool Key
     // Tokens:
     //   0:
     //     _1: Stake Pool NFT: Identifier for the stake pool box.
     //     _2: Amount: 1
     //   1:
-    //     _1: DAO Token ID: Token issued by the DAO
+    //     _1: DAO Token ID: Token issued by the DAO for distribution
     //     _2: Amount: <= Total DAO Tokens Amount
 
     // ===== Stake Box ===== //

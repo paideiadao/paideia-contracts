@@ -1,11 +1,80 @@
 {
-    // Stake Pool
+     // ===== Contract Information ===== //
+    // Name: stakePool
+    // Description: Contract that governs the emit and remove funds transactions for the stake pool box.
+    // Version: 1.0
+    // Authors: Lui, Luca
+
+    // ===== Stake Pool Box (SELF) ===== //
     // Registers:
-    // 4:0 Long: Emission amount per cycle
-    // 5: Coll[Byte]: Stake pool key
-    // Assets:
-    // 0: Stake Pool NFT
-    // 1: Remaining Staked Tokens for future distribution (ErgoPad)
+    //   R4[Long]: Emission Amount
+    //   R5[Coll[Byte]]: Stake Pool Key
+    // Tokens:
+    //   0:
+    //     _1: Stake Pool NFT: Identifier for the stake pool box.
+    //     _2: Amount: 1
+    //   1:
+    //     _1: DAO Token ID: Token issued by the DAO for distribution
+    //     _2: Amount: <= Total DAO Tokens Amount
+
+    // ===== Stake State Box ===== //
+    // Registers:
+    //   R4[Coll[Long]]:
+    //     0: Total Amount Staked
+    //     1: Checkpoint
+    //     2: Stakers
+    //     3: Last Checkpoint Timestamp
+    //     4: Cycle Duration 
+    // Tokens:
+    //   0: 
+    //     _1: Stake State NFT: Identifier for the stake state box.
+    //     _2: Amount: 1  
+    //   1: 
+    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _2: Amount: <= 1 Billion
+
+    // ===== Emission Box ===== //
+    // Registers:
+    //   R4[Coll[Long]]:
+    //     0: Total Amount Staked
+    //     1: Checkpoint
+    //     2: Stakers
+    //     3: Emission Amount
+    // Tokens:
+    //   0: 
+    //     _1: Emission NFT: Identifier for the emission box.
+    //     _2: Amount: 1
+    //   1: 
+    //     _1: DAO Token ID: Tokens to be emitted by the DAO.
+    //     _2: Amount: <= DAO Token Emission Amount
+
+    // ===== Stake Box ===== //
+    // Registers:
+    //   R4[Coll[Long]]:
+    //     0: Checkpoint
+    //     1: Staking Time
+    //   R5[Coll[Byte]]: Stake Key ID // ID of the stake key used for unstaking.
+    // Tokens:
+    //   0:
+    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _2: Amount: 1
+    //   1:
+    //     _1: DAO Token: Token issued by the DAO, which the user wishes to stake.
+    //     _2: Amount: > 0
+
+    // ===== Emit Tx ===== //
+    // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
+    // Inputs: StakeStateBox, StakePoolBox, EmissionBox
+    // DataInputs: None
+    // Context Extension Variables: None
+    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox
+
+    // ===== Remove Funds Tx ===== //
+    // Description: Removing funds from the stake pool box.
+    // Inputs: StakePoolBox
+    // DataInputs: None
+    // Context Extension Variables: None
+    // Outputs: 
 
     val stakeStateNFT = _stakeStateNFT
     val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
