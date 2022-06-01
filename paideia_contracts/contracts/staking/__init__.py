@@ -1067,11 +1067,11 @@ class CreateUnstakeProxyTransaction(ErgoTransaction):
         super().__init__(stakingConfig.appKit)
 
         stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
-        
+
         unstakeProxyBox = UnstakeProxyBox(
             appKit=stakingConfig.appKit,
             unstakeProxyContract=stakingConfig.unstakeProxyContract,
-            amountToUnstake=amountToUnstake,
+            amountToUnstake=min(amountToUnstake,stakeBox.amountStaked),
             userErgoTree=stakingConfig.appKit.contractFromAddress(address).getErgoTree().bytesHex(),
             stakeBox=stakeBox
         )
