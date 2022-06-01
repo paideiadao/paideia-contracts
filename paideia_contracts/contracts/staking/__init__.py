@@ -1067,11 +1067,11 @@ class CreateUnstakeProxyTransaction(ErgoTransaction):
         super().__init__(stakingConfig.appKit)
 
         stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
-        
+
         unstakeProxyBox = UnstakeProxyBox(
             appKit=stakingConfig.appKit,
             unstakeProxyContract=stakingConfig.unstakeProxyContract,
-            amountToUnstake=amountToUnstake,
+            amountToUnstake=min(amountToUnstake,stakeBox.amountStaked),
             userErgoTree=stakingConfig.appKit.contractFromAddress(address).getErgoTree().bytesHex(),
             stakeBox=stakeBox
         )
@@ -1181,12 +1181,12 @@ class StakingConfig:
 def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         appKit = appKit,
-        stakeStateNFT = "cefab5da4cd5acf413ee3bd9108493db180e2b8e5acd67631563a5ee43bcc5a0",
-        stakePoolNFT = "a0cb611d5e62a87df8c1e19a6b9c889b7f4eecd0a155d771713e4b014ef42d9a",
-        emissionNFT = "f33584765e270531c20c20922399eb6142dfb31e8b9bf39ab1147f0901bc4225",
-        stakeTokenId = "a1480cbb06a40542b8eec6cb69e7c021431c6b0a1d86f38e9823c29ca8801a24",
+        stakeStateNFT = "be5c7230dfc78351440319902da2bc5d469366b376fb2a12f9c6cb7de0df98cb",
+        stakePoolNFT = "f2782d06bc3b7aece6c566adc572d32302071f94df8cc1bfc983a2db5c7a38cd",
+        emissionNFT = "eb0c5f70029c5078906389cb3ed80d5b44f8d7a3963a91cb122d606f1b2181ba",
+        stakeTokenId = "dd411ab25f649f9785df34989f379e479d5dba100631498cdf6de3dd2015e9f2",
         stakedTokenId = "001475b06ed4d2a2fe1e244c951b4c70d924b933b9ee05227f2f2da7d6f46fd3",
-        stakePoolKey= "061e6db2cf2ede5ba8f9d8513f821c0733e3beb4f838cab0979146ebda69fd4c",
+        stakePoolKey = "a6f2a665ab941faa7c122f3056b5ccc079196774187212f4f8a41f0192d6f03e",
         stakedTokenName = "PaideiaTest",
         stakedTokenDecimals = 4,
         proxyToStakingIncentive = int(1e8),

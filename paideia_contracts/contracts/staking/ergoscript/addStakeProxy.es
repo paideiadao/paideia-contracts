@@ -6,11 +6,11 @@
     //stake key
     //tokens to be staked
 
-    val stakeStateNFT = _stakeStateNFT
-    val stakingIncentiveContract = _stakingIncentiveContract
-    val toStakingIncentive = _toStakingIncentive
-    val executorReward = _executorReward
-    val minerFee = _minerFee
+    val stakeStateNFT : Coll[Byte] = _stakeStateNFT
+    val stakingIncentiveContract : Coll[Byte] = _stakingIncentiveContract
+    val toStakingIncentive : Long = _toStakingIncentive
+    val executorReward : Long = _executorReward
+    val minerFee : Long = _minerFee
 
     val userPropositionBytes : Coll[Byte] = SELF.R5[Coll[Byte]].get
 

@@ -59,35 +59,35 @@ class TestStaking:
             traceback.print_exc()
         assert signed
 
-    def test_emit_empty(self):
+    def test_emit_initial(self):
         stakeStateInput = StakeStateBox(
             appKit=self.appKit,
             stakeStateContract=self.config.stakeStateContract,
-            checkpoint=1,
-            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 86400001),
+            checkpoint=0,
+            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 3600001),
             amountStaked=10000000,
-            cycleDuration=86400000,
-            stakers=10
+            cycleDuration=3600000,
+            stakers=1
             ).inputBox()
         stakePoolInput = StakePoolBox(
             appKit=self.appKit,
             stakePoolContract=self.config.stakePoolContract,
-            emissionAmount=293000,
-            remaining=900000000
+            emissionAmount=273900000,
+            remaining=100000000000
         ).inputBox()
         emissionInput = EmissionBox(
             appKit=self.appKit,
             emissionContract=self.config.emissionContract,
             emissionRemaining=0,
-            amountStaked=9569595,
-            checkpoint=0,
+            amountStaked=0,
+            checkpoint=-1,
             stakers=0,
-            emissionAmount=293000
+            emissionAmount=0
         ).inputBox()
         stakingIncentiveInput = StakingIncentiveBox(
             appKit=self.appKit,
             stakingIncentiveContract=self.config.stakingIncentiveContract,
-            value=int(1e9)
+            value=int(1e8)
         ).inputBox()
         signed = False
         try:
@@ -230,7 +230,7 @@ class TestStaking:
             appKit=self.appKit,
             stakeContract=self.config.stakeContract,
             checkpoint=int(118),
-            stakeTime=int(1652544797403),
+            stakeTime=int(0),
             amountStaked=int(15727686),
             stakeKey="4d82471b2ec40ad3b301dbb5f0e62a5b7edbcdf3ec7dec1324b89f7d5ed65555"
         ).inputBox("8a5917f284b2071db8cbd8cebe9ba793b244d67694ef4382693d0751837e1be4",1)

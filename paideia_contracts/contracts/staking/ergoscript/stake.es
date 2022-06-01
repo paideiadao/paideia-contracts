@@ -8,9 +8,9 @@
     // 0: Stake Token: 1 token to prove this is a legit stake box
     // 1: Staked Token (ErgoPad): The tokens staked by the user
 
-    val stakeStateNFT = _stakeStateNFT
-    val emissionNFT = _emissionNFT
-    val stakeStateInput = INPUTS(0).tokens(0)._1 == stakeStateNFT
+    val stakeStateNFT : Coll[Byte] = _stakeStateNFT
+    val emissionNFT : Coll[Byte] = _emissionNFT
+    val stakeStateInput : Boolean = INPUTS(0).tokens(0)._1 == stakeStateNFT
 
     val checkpoint : Long = SELF.R4[Coll[Long]].get(0)
     val stakeTime : Long = SELF.R4[Coll[Long]].get(1)
@@ -45,7 +45,7 @@
 
     val validUnstakeTxInput : Boolean = if (!validCompoundTxInput) INPUTS(1).id == SELF.id && OUTPUTS(0).R4[Coll[Long]].get(0) < INPUTS(0).R4[Coll[Long]].get(0) else false
 
-    val unstakeTx = if (validUnstakeTxInput) { // Unstake
+    val unstakeTx : Boolean = if (validUnstakeTxInput) { // Unstake
 
         val userOutput : Box = OUTPUTS(1)
 
