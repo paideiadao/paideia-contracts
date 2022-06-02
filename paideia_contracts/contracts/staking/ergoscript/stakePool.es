@@ -1,5 +1,6 @@
 {
-     // ===== Contract Information ===== //
+    
+    // ===== Contract Information ===== //
     // Name: stakePool
     // Description: Contract that governs the emit and remove funds transactions for the stake pool box.
     // Version: 1.0

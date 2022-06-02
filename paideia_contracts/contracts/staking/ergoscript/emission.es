@@ -1,4 +1,5 @@
 {
+    
     // ===== Contract Information ===== //
     // Name: emission
     // Description: Contract that governs the emit and compound transactions for the emission box.
