@@ -182,9 +182,9 @@
                         
                     allOf(Coll(
                         (emissionFeeBox.propositionBytes == EmissionFeeAddress),  // Check contract bytes
-                        (emissionFeeBox.value == 1000000),						  // Minimum ERG value for box to exists
-                        (emissionFeeBox.tokens(0)._1 == SELF.tokens(1)._1),		  // DAO Token ID
-                        (emissionFeeBox.tokens(0)._2 == emissionFeeAmount)		  // 1% fee of DAO tokens
+                        (emissionFeeBox.value == 1000000),                        // Minimum ERG value for box to exists
+                        (emissionFeeBox.tokens(0)._1 == SELF.tokens(1)._1),       // DAO Token ID
+                        (emissionFeeBox.tokens(0)._2 == emissionFeeAmount)        // 1% fee of DAO tokens
                     ))
 
                 } else {
