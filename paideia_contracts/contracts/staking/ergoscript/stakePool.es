@@ -41,6 +41,7 @@
                             
         allOf(Coll(
             //Stake State, Stake Pool (self), Emission => Stake State, Stake Pool, Emission, EmissionFee
+            stakePoolOutput.value == SELF.value,
             stakePoolOutput.propositionBytes == SELF.propositionBytes,
             stakePoolOutput.tokens(0)._1 == SELF.tokens(0)._1,
             tokensRemaining,

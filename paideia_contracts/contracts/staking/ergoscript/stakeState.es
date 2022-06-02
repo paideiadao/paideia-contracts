@@ -32,17 +32,19 @@
     val checkpointTimestampOut : Long   = stakeStateOutput.R4[Coll[Long]].get(3)
     val cycleDurationOut : Long         = stakeStateOutput.R4[Coll[Long]].get(4)
 
+    val stakeTokenId : Coll[Byte]       = SELF.tokens(1)._1
+
     val selfReplication = allOf(Coll(
         stakeStateOutput.propositionBytes == SELF.propositionBytes,
         stakeStateOutput.value == SELF.value,
         stakeStateOutput.tokens(0)._1 == SELF.tokens(0)._1,
         stakeStateOutput.tokens(0)._2 == SELF.tokens(0)._2,
-        stakeStateOutput.tokens(1)._1 == SELF.tokens(1)._1,
+        stakeStateOutput.tokens(1)._1 == stakeTokenId,
         cycleDurationOut == cycleDuration,
         stakeStateOutput.tokens.size == 2
     ))
 
-    val validStakeTxInput : Boolean = OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1
+    val validStakeTxInput : Boolean = OUTPUTS(1).tokens(0)._1 == stakeTokenId
 
     val stakeTx : Boolean = if (validStakeTxInput) {
 
@@ -93,6 +95,7 @@
                 checkpointTimestampOut == checkpointTimestamp,
                 stakeStateOutput.tokens(1)._2 == SELF.tokens(1)._2,
                 // // Stake
+                stakeOutput.value == stakeInput.value,
                 blake2b256(stakeOutput.propositionBytes) == stakeContract,
                 blake2b256(stakeInput.propositionBytes) == stakeContract,
                 stakeOutput.R4[Coll[Long]].get(0) == checkpoint,
@@ -137,7 +140,7 @@
       // // Stake State (SELF), Stake, UnstakeProxy => Stake State, User Wallet, Stake (optional for partial unstake)
         val stakeInput : Box        = INPUTS(1)
         
-        // val unstakeProxyInput : Box = INPUTS(2)
+        val unstakeProxyInput : Box = INPUTS(2)
 
         val userOutput : Box        = OUTPUTS(1)
 
@@ -147,7 +150,8 @@
 
         allOf(Coll(
             selfReplication,
-            // unstakeProxyInput.tokens(0)._1 == stakeKey,
+            unstakeProxyInput.tokens(0)._1 == stakeKey,
+            stakeInput.tokens(0)._1 == stakeTokenId,
             stakeInput.R4[Coll[Long]].get(0) == checkpoint,
             //Stake State
             totalAmountStakedOut == totalAmountStaked-unstaked,
@@ -165,6 +169,7 @@
                 allOf(Coll(
                     userOutput.tokens.getOrElse(1,(Coll[Byte](),0L))._1 == stakeInput.R5[Coll[Byte]].get,
                     //Stake output
+                    stakeOutput.propositionBytes == stakeInput.propositionBytes,
                     stakeOutput.value == stakeInput.value,
                     stakeOutputToken0._1 == stakeInput.tokens(0)._1,
                     stakeOutputToken0._2 == stakeInput.tokens(0)._2,

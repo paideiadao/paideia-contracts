@@ -114,6 +114,7 @@
                 val remainingStakePoolTokensAndEmissionDust: Long = stakePoolBox.tokens(1)._2 + SELF.tokens.getOrElse(1,(Coll[Byte](),0L))._2
 
                 allOf(Coll(
+                    (newEmissionBox.value == SELF.value),
 
                     // Check that the new emission box is governed by the same contract as this current emission box
                     (newEmissionBox.propositionBytes == SELF.propositionBytes),
@@ -187,6 +188,7 @@
                 }
 
                 allOf(Coll(
+                    (newEmissionBox.value == SELF.value),
 
                     // Check that the new emission box is governed by the same contract as this current emission box
                     (newEmissionBox.propositionBytes == SELF.propositionBytes),
