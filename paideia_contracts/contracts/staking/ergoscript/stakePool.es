@@ -154,7 +154,8 @@
                     validRemainingStakePoolTokensAmount,
                     (newStakePoolBox.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get),
                     (newStakePoolBox.R4[Coll[Long]].get(0) == totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust)
-                    (newStakePoolBox.R5[Coll[Long]].get == SELF.R5[Coll[Long]].get)                ))
+                    (newStakePoolBox.R5[Coll[Long]].get == SELF.R5[Coll[Long]].get)
+                ))
 
             }
 
