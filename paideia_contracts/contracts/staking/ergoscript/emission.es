@@ -77,21 +77,21 @@
     // Outputs: NewEmissionBox, NewStakeBoxes, NewStakingIncentiveBox, TxOperatorOutputBox
 
     // ===== Hard-Coded Constants ===== //
-    val StakeStateNFT: Coll[Byte] = _stakeStateNFT  // NFT identifying the StakeStateBox.
-    val StakeTokenID: Coll[Byte] = _stakeTokenID    // Token proving that the StakeBox was created properly.
-    val StakedTokenID: Coll[Byte] = _stakedTokenID  // Token identifier for the token distributed by the DAO. 
+    val StakeStateNFT: Coll[Byte] = _stakeStateNFT  // NFT identifying the stake state box
+    val StakeTokenID: Coll[Byte] = _stakeTokenID    // Token proving that the stake box was created properly
+    val StakedTokenID: Coll[Byte] = _stakedTokenID  // Token identifier for the token distributed by the DA. 
 
     // ===== Perform Emit Tx ===== //
 
     // Check conditions for a valid Emit Tx
     val validEmitTx: Boolean = {
 
-        // Emit tx inputs
+        // Emit Tx Inputs
         val stakeStateBox: Box = INPUTS(0)
         val stakePoolBox: Box = INPUTS(1)     
         val emissionBox: Box = INPUTS(2)
 
-        // Emit tx outputs
+        // Emit Tx Outputs
         val newStakeStateBox: Box = OUTPUTS(0)
         val newStakePoolBox: Box = OUTPUTS(1)
         val newEmissionBox: Box = OUTPUTS(2)
@@ -159,20 +159,23 @@
 
         // Check for a valid compound tx input
         val validCompoundInput: Boolean = {
-            (emissionBox.id == SELF.id)  // Check that the first input box is the current emission box with the same box id
+
+            // Check that the first input box is the current emission box with the same box id
+            (emissionBox.id == SELF.id)
+
         }
 
         if (validCompoundInput) {
 
             // Get stake boxes with the same checkpoint time as the current emission box
             val stakeBoxes: Coll[Box] = INPUTS.filter({(stakeBox: Box) => if (stakeBox.tokens.size > 0) (stakeBox.tokens(0)._1 == StakeTokenID) && (stakeBox.R4[Coll[Long]].get(0) == SELF.R4[Coll[Long]].get(1)) else false})
-
+            
             // Check for valid emission output box
             val validNewEmissionBox: Boolean = {
 
                 // Check that the correct amount of emission tokens are remaining
                 val validRemainingEmission: Boolean = {
-
+                    
                     // Calculate emission amount, total distributed amount, and the remaining emission amount
                     val emissionAmount: BigInt = SELF.R4[Coll[Long]].get(3).toBigInt
                     val distributedAmount: BigInt = stakeBoxes.fold(0.toBigInt, {(acc: BigInt, stakeBox: Box) => acc + ((stakeBox.tokens(1)._2.toBigInt * emissionAmount) / SELF.R4[Coll[Long]].get(0).toBigInt)})
@@ -180,9 +183,15 @@
 
                     // Check if the amount of emission tokens for this current emission box is less than the total distributed amount
                     if (SELF.tokens(1)._2 <= distributedAmount) {
-                        newEmissionBox.tokens.size == 1  // There should not be any emission tokens in the new emission box
+
+                        // There should not be any emission tokens in the new emission box
+                        (newEmissionBox.tokens.size == 1)
+
                     } else {
-                        (newEmissionBox.tokens(1)._1 == StakedTokenID) && (newEmissionBox.tokens(1)._2 >= remainingEmission) // The new emission box contains the remaining emission tokens after distribution
+
+                        // The new emission box contains the remaining emission tokens after distribution
+                        (newEmissionBox.tokens(1)._1 == StakedTokenID) && (newEmissionBox.tokens(1)._2 >= remainingEmission)
+
                     }
 
                 }

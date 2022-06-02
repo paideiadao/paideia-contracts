@@ -83,10 +83,8 @@
     // Outputs: A box with the Stake Pool Key as a token in it, any other box.
 
     // ===== Hard-Coded Constants ===== //
-    val StakeStateNFT : Coll[Byte] = _stakeStateNFT
-    val EmissionFeeAddress : Coll[Byte] = _emissionFeeAddress
-
-    val emissionAmount : Long = SELF.R4[Coll[Long]].get(0)
+    val StakeStateNFT : Coll[Byte] = _stakeStateNFT            // NFT identifying the stake state box
+    val EmissionFeeAddress : Coll[Byte] = _emissionFeeAddress  // Address where the emission fee is sent
 
     // ===== Perform Emit Tx ===== //
     
@@ -114,67 +112,109 @@
         }
 
         if (validEmitInputs) {
+            
+            // Get the amount of tokens alloted for emission
+            val emissionAmount : Long = SELF.R4[Coll[Long]].get(0)
 
+            // Calculate the leftover dust tokens within the emission box
+            val emissionDust: Long = if (emissionBox.tokens.size >= 2) emissionBox.tokens(1)._2 else 0L
+
+            // Calculate the remaining stake pool tokens along with the leftover emission box dust
+            val remainingStakePoolTokensAndEmissionDust: Long = SELF.tokens(1)._2 + emissionDust
+
+            // Get the total amount staked since the previous snapshot from the stake state box
+            val totalAmountStaked: Long = stakeStateBox.R4[Coll[Long]].get(0)
+
+            // The emisson fee taken from the stake pool is 1% of the alloted emission amount 
+            val emissionFeeAmount: Long = emissionAmount / 100L
+
+            // Check for that a valid new stake pool box was created as an output
             val validNewStakePoolBox: Boolean = {
 
-                val dust
+                // Check if the output stakepool box has the correct amount of tokens remaining after the emit tx
+                val validRemainingStakePoolTokensAmount: Boolean = {
+
+                    // Check if the alloted emission amount of tokens needs to be taken out of the stake pool
+                    if (remainingStakePoolTokensAndEmissionDust > emissionAmount) {
+
+                        allOf(Coll(
+                            (newStakePoolBox.tokens(1)._1 == SELF.tokens(1)._1),
+                            (newStakePoolBox.tokens(1)._2 == remainingStakePoolTokensAndEmissionDust - emissionAmount)
+                        ))
+
+                    } else {
+                        (newStakePoolBox.tokens.size == 1)
+                    }
+
+                }
+                
+                allOf(Coll(
+                    (newStakePoolBox.propositionBytes == SELF.propositionBytes),
+                    (newStakePoolBox.tokens(0)._1 == SELF.tokens(0)._1),
+                    validRemainingStakePoolTokensAmount,
+                    (newStakePoolBox.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get),
+                    (newStakePoolBox.R4[Coll[Long]].get(0) == totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust)
+                    (newStakePoolBox.R5[Coll[Long]].get == SELF.R5[Coll[Long]].get)                ))
 
             }
 
+            // Check that a valid emission fee box was created as an output
+            val validEmissionFeeBox: Boolean = {
+
+                // An emission fee box is created only if there are any remaining tokens in the stake pool to be used for emission
+                if (newStakePoolBox.tokens.size > 1) {
+                    
+                    allOf(Coll(
+                        (emissionFeeBox.propositionBytes == EmissionFeeAddress),
+                        (emissionFeeBox.value == 1000000),
+                        (emissionFeeBox.tokens(0)._1 == SELF.tokens(1)._1),
+                        (emissionFeeBox.tokens(0)._2 == emissionFeeAmount)
+                    ))
+
+                } esle {
+                    true
+                }
+
+            }
+
+            allOf(Coll(
+                validNewEmissionBox,
+                validEmissionFeeBox
+            ))
+
+        } else {
+            false
         }
-    }
-    val emitTx : Boolean = if (stakeStateInput && INPUTS(1).id == SELF.id) { // Emit transaction
 
-        val emissionInput : Box = INPUTS(2)
-
-        val stakeStateOutput : Box = OUTPUTS(0)
-
-        val stakePoolOutput : Box = OUTPUTS(1)
-
-        val emissionOutput : Box = OUTPUTS(2)
-
-        val feeOutput : Box = OUTPUTS(3)
-
-        val dust : Long = (if (INPUTS(2).tokens.size >= 2) INPUTS(2).tokens(1)._2 else 0L)
-
-        val remainingAndDust : Long = SELF.tokens(1)._2 + dust
-
-        val tokensRemaining : Long = if (remainingAndDust > emissionAmount)
-                                        stakePoolOutput.tokens(1)._1 == SELF.tokens(1)._1 &&
-                                        stakePoolOutput.tokens(1)._2 == remainingAndDust - emissionAmount
-                                    else
-                                        stakePoolOutput.tokens.size == 1
-
-        val totalAmountStaked : Long = INPUTS(0).R4[Coll[Long]].get(0)
-
-        val feeAmount : Long = emissionAmount / 100L
-                            
-        allOf(Coll(
-            //Stake State, Stake Pool (self), Emission => Stake State, Stake Pool, Emission, EmissionFee
-            stakePoolOutput.propositionBytes == SELF.propositionBytes,
-            stakePoolOutput.tokens(0)._1 == SELF.tokens(0)._1,
-            tokensRemaining,
-            stakePoolOutput.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get,
-            stakePoolOutput.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get,
-            stakeStateOutput.R4[Coll[Long]].get(0) == totalAmountStaked + (emissionAmount-feeAmount) - dust,
-            if (stakePoolOutput.tokens.size > 1) {
-                allOf(Coll(
-                    feeOutput.propositionBytes == emissionFeeAddress,
-                    feeOutput.value == 1000000,
-                    feeOutput.tokens(0)._1 == SELF.tokens(1)._1,
-                    feeOutput.tokens(0)._2 == feeAmount
-                ))
-            } else true
-        ))
-    } else {
-        false
     }
 
-    val removeFundsTx : Boolean = if (INPUTS(0).id == SELF.id) { //Remove funds
-        OUTPUTS(0).tokens(0)._1 == SELF.R5[Coll[Byte]].get
-    } else {
-        false
+    // ===== Perform Remove Funds Tx ===== //
+
+    // Check conditions for a valid remove funds tx
+    val validRemoveFundsTx: Boolean = {
+
+        // Remove Funds Tx Inputs
+        val stakePoolBox: Box = INPUTS(0)
+
+        // Remove Funds Tx Outputs
+        val outputBoxWithStakePoolKey: Box = OUTPUTS(0)
+
+        // Check that the inputs to the remove funds tx are valid
+        val validRemoveFundsInput: Boolean = {
+            (stakePoolBox.id == SELF.id)
+        }
+
+        if (validRemoveFundsInput) {
+
+            // Check that the first output has the stake pool key as a token id
+            (outputBoxWithStakePoolKey.tokens(0)._1 == SELF.R5[Coll[Byte]].get)
+
+        } else {
+            false
+        }
+
     }
     
-    sigmaProp(emitTx || removeFundsTx)
+    sigmaProp(validEmitTx || validRemoveFundsTx)
+
 }
