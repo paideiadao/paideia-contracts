@@ -79,7 +79,7 @@
 
     // ===== Hard-Coded Constants ===== //
     val StakeStateNFT: Coll[Byte] = _stakeStateNFT  // NFT identifying the stake state box
-    val StakeTokenID: Coll[Byte] = _stakeTokenID    // Token proving that the stake box was created properly
+    val StakeTokenID:  Coll[Byte] = _stakeTokenID   // Token proving that the stake box was created properly
     val StakedTokenID: Coll[Byte] = _stakedTokenID  // Token identifier for the token distributed by the DAO
 
     // ===== Perform Emit Tx ===== //

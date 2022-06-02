@@ -84,8 +84,8 @@
     // Outputs: A box with the Stake Pool Key as a token in it, any other box.
 
     // ===== Hard-Coded Constants ===== //
-    val StakeStateNFT : Coll[Byte] = _stakeStateNFT            // NFT identifying the stake state box
-    val EmissionFeeAddress : Coll[Byte] = _emissionFeeAddress  // Address where the emission fee is sent
+    val StakeStateNFT:      Coll[Byte] = _stakeStateNFT       // NFT identifying the stake state box
+    val EmissionFeeAddress: Coll[Byte] = _emissionFeeAddress  // Address where the emission fee is sent
 
     // ===== Perform Emit Tx ===== //
     
@@ -103,6 +103,7 @@
         val newEmissionBox: Box = OUTPUTS(2)
         val emissionFeeBox: Box = OUTPUTS(3)
 
+        // Check conditions for valid inputs into the emit tx
         val validEmitInputs: Boolean = {
 
             allOf(Coll(
