@@ -150,12 +150,25 @@
                 }
                 
                 allOf(Coll(
+
+                    // Check that the new stake pool box has the same contract
                     (newStakePoolBox.propositionBytes == SELF.propositionBytes),
+
+                    // Check that the stake pool nft identifier is the same
                     (newStakePoolBox.tokens(0)._1 == SELF.tokens(0)._1),
+
+                    // Make sure that the remaining stake pool token amount is appropriate depending on if emission is still possible
                     validRemainingStakePoolTokensAmount,
+                    
+                    // Check that the new stake pool box has the same alloted emission amount as the current one
                     (newStakePoolBox.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get),
-                    (newStakePoolBox.R4[Coll[Long]].get(0) == totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust)
-                    (newStakePoolBox.R5[Coll[Long]].get == SELF.R5[Coll[Long]].get)
+                    
+                    // Check that the DAO token id is the same for the new stake pool box
+                    (newStakePoolBox.R5[Coll[Long]].get == SELF.R5[Coll[Long]].get),
+
+                    // Update the total amount of staked tokens after the emit tx
+                    (newStakeStateBox.R4[Coll[Long]].get(0) == (totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust))
+                
                 ))
 
             }
