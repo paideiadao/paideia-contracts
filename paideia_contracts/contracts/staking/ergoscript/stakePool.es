@@ -62,26 +62,67 @@
     //     _1: DAO Token: Token issued by the DAO, which the user wishes to stake.
     //     _2: Amount: > 0
 
+    // ===== Emission Fee Box ===== //
+    // Tokens:
+    //   0:
+    //     _1: DAO Token: Token issued by the DAO.
+    //     _2: Amount: 1% fee
+
     // ===== Emit Tx ===== //
     // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
-    // Inputs: StakeStateBox, StakePoolBox, EmissionBox
+    // Inputs: StakeStateBox, StakePoolBox, EmissionBox, StakingIncentiveBox
     // DataInputs: None
     // Context Extension Variables: None
-    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox
+    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox, EmissionFeeBox, StakingIncentiveBox, TxOperatorOutput
 
     // ===== Remove Funds Tx ===== //
     // Description: Removing funds from the stake pool box.
-    // Inputs: StakePoolBox
+    // Inputs: StakePoolBox, StakingIncentiveBox
     // DataInputs: None
     // Context Extension Variables: None
-    // Outputs: 
+    // Outputs: A box with the Stake Pool Key as a token in it, any other box.
 
-    val stakeStateNFT : Coll[Byte] = _stakeStateNFT
-    val stakeStateInput : Boolean = INPUTS(0).tokens(0)._1 == stakeStateNFT
-    val emissionFeeAddress : Coll[Byte] = _emissionFeeAddress
+    // ===== Hard-Coded Constants ===== //
+    val StakeStateNFT : Coll[Byte] = _stakeStateNFT
+    val EmissionFeeAddress : Coll[Byte] = _emissionFeeAddress
 
     val emissionAmount : Long = SELF.R4[Coll[Long]].get(0)
+
+    // ===== Perform Emit Tx ===== //
     
+    // Check conditions for a valid Emit Tx
+    val validEmitTx: Boolean = {
+
+        // Emit tx inputs
+        val stakeStateBox: Box = INPUTS(0)
+        val stakePoolBox: Box = INPUTS(1)
+        val emissionBox: Box = INPUTS(2)
+
+        // Emit tx outputs
+        val newStakeStateBox: Box = OUTPUTS(0)
+        val newStakePoolBox: Box = OUTPUTS(1)
+        val newEmissionBox: Box = OUTPUTS(2)
+        val emissionFeeBox: Box = OUTPUTS(3)
+
+        val validEmitInputs: Boolean = {
+
+            allOf(Coll(
+                (stakeStateBox.tokens(0)._1 == StakeStateNFT),  // Check that the stake state box contains the correct NFT identifier
+                (stakePoolBox.id == SELF.id)                    // Check that the second input box is the current stake pool box with the correct box id
+            ))
+
+        }
+
+        if (validEmitInputs) {
+
+            val validNewStakePoolBox: Boolean = {
+
+                val dust
+
+            }
+
+        }
+    }
     val emitTx : Boolean = if (stakeStateInput && INPUTS(1).id == SELF.id) { // Emit transaction
 
         val emissionInput : Box = INPUTS(2)

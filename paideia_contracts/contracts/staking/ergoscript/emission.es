@@ -64,17 +64,17 @@
 
     // ===== Emit Tx ===== //
     // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
-    // Inputs: StakeStateBox, StakePoolBox, EmissionBox
+    // Inputs: StakeStateBox, StakePoolBox, EmissionBox, StakingIncentiveBox
     // DataInputs: None
     // Context Extension Variables: None
-    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox
+    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox, EmissionFeeBox, NewStakingIncentiveBox, TxOperatorOutputBox
 
     // ===== Compound Tx ===== //
     // Description: Distribute the funds from the new emission box to the stake boxes.
-    // Inputs: EmissionBox, StakeBoxes
+    // Inputs: EmissionBox, StakeBoxes, StakingIncentiveBox
     // DataInputs: None
     // Context Extension Variables: None
-    // Outputs: NewEmissionBox, NewStakeBoxes
+    // Outputs: NewEmissionBox, NewStakeBoxes, NewStakingIncentiveBox, TxOperatorOutputBox
 
     // ===== Hard-Coded Constants ===== //
     val StakeStateNFT: Coll[Byte] = _stakeStateNFT  // NFT identifying the StakeStateBox.
@@ -84,7 +84,7 @@
     // ===== Perform Emit Tx ===== //
 
     // Check conditions for a valid Emit Tx
-    val validEmit: Boolean = {
+    val validEmitTx: Boolean = {
 
         // Emit tx inputs
         val stakeStateBox: Box = INPUTS(0)
@@ -100,8 +100,8 @@
         val validEmitInputs: Boolean = {
 
             allOf(Coll(
-                (stakeStateBox.tokens(0)._1 == StakeStateNFT),  // Check that the state stake box contains the correct NFT identifier
-                (emissionBox.id == SELF.id)                     // Check that the second input box is the current emission box with the correct box id
+                (stakeStateBox.tokens(0)._1 == StakeStateNFT),  // Check that the stake state box contains the correct NFT identifier
+                (emissionBox.id == SELF.id)                     // Check that the third input box is the current emission box with the correct box id
             ))
 
         }
@@ -149,7 +149,7 @@
     // ===== Perform Compound Tx ===== //
 
     // Check conditions for a valid compound tx
-    val validCompound: Boolean = {
+    val validCompoundTx: Boolean = {
 
         // Compound tx inputs
         val emissionBox: Box = INPUTS(0)
@@ -219,6 +219,6 @@
 
     }
 
-    sigmaProp(validEmit || validCompound)
+    sigmaProp(validEmitTx || validCompoundTx)
 
 }
