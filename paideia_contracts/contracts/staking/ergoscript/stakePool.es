@@ -94,14 +94,14 @@
 
 		// Emit tx inputs
 		val stakeStateBox: Box = INPUTS(0)
-		val stakePoolBox: Box = INPUTS(1)
-		val emissionBox: Box = INPUTS(2)
+		val stakePoolBox:  Box = INPUTS(1)
+		val emissionBox:   Box = INPUTS(2)
 
 		// Emit tx outputs
 		val newStakeStateBox: Box = OUTPUTS(0)
-		val newStakePoolBox: Box = OUTPUTS(1)
-		val newEmissionBox: Box = OUTPUTS(2)
-		val emissionFeeBox: Box = OUTPUTS(3)
+		val newStakePoolBox:  Box = OUTPUTS(1)
+		val newEmissionBox:   Box = OUTPUTS(2)
+		val emissionFeeBox:   Box = OUTPUTS(3)
 
 		// Check conditions for valid inputs into the emit tx
 		val validEmitInputs: Boolean = {
