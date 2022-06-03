@@ -117,6 +117,9 @@
 
                 allOf(Coll(
 
+                    // Check that the new emission box value is the same as the current box
+                    (newEmissionBox.value == SELF.value),
+
                     // Check that the new emission box is governed by the same contract as this current emission box
                     (newEmissionBox.propositionBytes == SELF.propositionBytes),
 
@@ -198,6 +201,9 @@
                 }
 
                 allOf(Coll(
+
+                    // Check that the new emission box has the same value as the current box
+                    (newEmissionBox.value == SELF.value),
 
                     // Check that the new emission box is governed by the same contract as this current emission box
                     (newEmissionBox.propositionBytes == SELF.propositionBytes),

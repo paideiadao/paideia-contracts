@@ -156,6 +156,9 @@
                 
                 allOf(Coll(
 
+                    // Check that the new stake pool box value is preserved
+                    (newStakePoolBox.value == SELF.value),
+
                     // Check that the new stake pool box has the same contract
                     (newStakePoolBox.propositionBytes == SELF.propositionBytes),
 

@@ -137,6 +137,7 @@
 	val stakers: Long              = SELF.R4[Coll[Long]].get(2)
 	val checkpointTimestamp: Long  = SELF.R4[Coll[Long]].get(3)
 	val cycleDuration: Long        = SELF.R4[Coll[Long]].get(4)
+	val stakeTokenID: Coll[Byte]   = SELF.tokens(1)._1
 
 	// Output stake state box parameters
 	val newStakeStateBox: Box 		  = OUTPUTS(0)
@@ -162,7 +163,7 @@
 			(newStakeStateBox.tokens(0)._2 == SELF.tokens(0)._2),
 
 			// Check that the stake token id is the same
-			(newStakeStateBox.tokens(1)._1 == SELF.tokens(1)._1),
+			(newStakeStateBox.tokens(1)._1 == stakeTokenID,
 
 			// The total tokens in the new stake state box is always 2
 			(newStakeStateBox.tokens.size == 2),
@@ -179,12 +180,12 @@
 	// Check conditions for a valid Stake Tx
 	val validStakeTx: Boolean = {
 
-		// Check if this is a stake tx, the new stake box will have the stake token NFT
-		val isStakeTx : Boolean = (OUTPUTS(1).tokens(0)._1 == SELF.tokens(1)._1)
+		// Check if this is a stake tx, the new stake box will have the stake token NFT ID
+		val isStakeTx : Boolean = (OUTPUTS(1).tokens(0)._1 == stakeTokenID)
 
 		if (isStakeTx) {
 
-			// Check to see if this is the first staking tx for the user, the stake token amounts will be less for the new stake state box
+			// Check to see if this is the first staking tx for the user - the stake token amounts will be less for the new stake state box
 			val isInitialStake: Boolean = (newStakeStateBox.tokens(1)._2 < SELF.tokens(1)._2)
 
 			// ===== Perform Initial Stake Tx ===== //
@@ -327,6 +328,9 @@
 				val validNewStakeBox: Boolean = {
 
 					allOf(Coll(
+
+						// Check that the new stake box value is preserved
+						(newStakeBox.value == stakeBox.value)
 						
 						// Check that the hash of the output stake box contract is the same as the hard-coded value
 						(blake2b256(newStakeBox.propositionBytes) == StakeContract),
@@ -504,6 +508,7 @@
 
 				// Conditions for a valid stake box
 				val validStakeBox: Boolean = {
+					(stakeBox.tokens(0)._1 == stakeTokenID)             // The stake box must still contain the stake token given from the stake state box
 					(stakeBox.R4[Coll[Long]].get(0) == checkpoint)  // The input stake box must be the same as this current box with the same emission checkpoint
 				}
 
@@ -581,6 +586,9 @@
 								
 								// ERG value to make the box exists is preserved
 								(newStakeBox.value == stakeBox.value),
+
+								// Check that the output stake box is guarded by the same contract as the input stake box
+								(newStakeBox.propositionBytes == stakeBox.propositionBytes),
 
 								// The stake token from the previous stake box is preserved for the new stake box 
 								(newStakeBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == stakeBox.tokens(0)._1),
