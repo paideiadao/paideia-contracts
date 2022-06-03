@@ -476,8 +476,12 @@
     val validUnstakeTx: Boolean = {
 
         // Unstake Tx Inputs
-        val stakeStateBox: Box = INPUTS(0)
-        val stakeBox: Box = INPUTS(1)
+        val stakeStateBox:   Box = INPUTS(0)
+        val stakeBox:        Box = INPUTS(1)
+        val unstakeProxyBox: Box = INPUTS(2)
+
+        // Unstake Tx Outputs
+        val userWalletBox:   Box = OUTPUTS(1)
 
         // Conditions for valid unstake tx inputs
         val validUnstakeInputs: Boolean = {
@@ -491,11 +495,6 @@
         }
 
         if (validUnstakeInputs) {
-
-            val unstakeProxyBox: Box = INPUTS(2)
-
-            // Unstake Tx Outputs
-            val userWalletBox: Box = OUTPUTS(1)
 
             // Unstake calculation variables
             val unstakedAmount: Long = totalAmountStaked - totalAmountStakedOut
@@ -601,8 +600,8 @@
                                 (newStakeBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._2 == stakeBox.tokens(0)._2),
                                 
                                 // The new stake box must contain the remaining staked DAO tokens after the partial unstake
-                                (newStakeBox.tokens.getOrElse(1, (Coll[Byte](), 0L))._1 == stakeBox.tokens(1)._1),
-                                (newStakeBox.tokens.getOrElse(1, (Coll[Byte](), 0L))._2 == remainingStakeAmount),
+                                (newStakeBox.tokens(1)._1 == stakeBox.tokens(1)._1),
+                                (newStakeBox.tokens(1)._2 == remainingStakeAmount),
                                 
                                 // The new stake box keeps the same parameters as the previous stake box: Checkpoint and Staking Time
                                 (newStakeBox.R4[Coll[Long]].get(0) == stakeBox.R4[Coll[Long]].get(0)),
