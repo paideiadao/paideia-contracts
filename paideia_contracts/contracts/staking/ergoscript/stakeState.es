@@ -537,13 +537,13 @@
                         (checkpointOut == checkpoint),
 
                         // The amount of stakers should decrease by 1 if a full unstake occurs
-                        (stakersOut == stakers - (if (remainingStakeAmount == 0L) 1L else 0L)),
+                        (stakersOut == stakers - (if (!isPartialUnstake) 1L else 0L)),
 
                         // Check that the unstake tx occurs within the same emission cycle, with the same checkpoit timestamp
                         (checkpointTimestampOut == checkpointTimestamp),
 
                         // The stake token from the stake box should be given back to the stake state box after a full unstake
-                        (newStakeStateBox.tokens(1)._2 == SELF.tokens(1)._2 + (if (remainingStakeAmount == 0L) 1L else 0L))
+                        (newStakeStateBox.tokens(1)._2 == SELF.tokens(1)._2 + (if (!isPartialUnstake) 1L else 0L))
 
                     ))
 
