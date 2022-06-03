@@ -151,19 +151,19 @@
 	val validSelfReplication: Boolean = {
 	
 		allOf(Coll(
-
-			// Check that the stake state contract is the same
-			(newStakeStateBox.propositionBytes == SELF.propositionBytes),
 			
 			// Check that the ERG value is preserved
-			(newStakeStateBox.value == SELF.value),    
+			(newStakeStateBox.value == SELF.value),
+
+			// Check that the stake state contract is the same
+			(newStakeStateBox.propositionBytes == SELF.propositionBytes),    
 
 			// Check that the stake state nft identifier token is the same 
 			(newStakeStateBox.tokens(0)._1 == SELF.tokens(0)._1),
 			(newStakeStateBox.tokens(0)._2 == SELF.tokens(0)._2),
 
 			// Check that the stake token id is the same
-			(newStakeStateBox.tokens(1)._1 == stakeTokenID,
+			(newStakeStateBox.tokens(1)._1 == stakeTokenID),
 
 			// The total tokens in the new stake state box is always 2
 			(newStakeStateBox.tokens.size == 2),
@@ -330,7 +330,7 @@
 					allOf(Coll(
 
 						// Check that the new stake box value is preserved
-						(newStakeBox.value == stakeBox.value)
+						(newStakeBox.value == stakeBox.value),
 						
 						// Check that the hash of the output stake box contract is the same as the hard-coded value
 						(blake2b256(newStakeBox.propositionBytes) == StakeContract),
@@ -508,8 +508,12 @@
 
 				// Conditions for a valid stake box
 				val validStakeBox: Boolean = {
-					(stakeBox.tokens(0)._1 == stakeTokenID)             // The stake box must still contain the stake token given from the stake state box
-					(stakeBox.R4[Coll[Long]].get(0) == checkpoint)  // The input stake box must be the same as this current box with the same emission checkpoint
+
+					allOf(Coll(
+						(stakeBox.tokens(0)._1 == stakeTokenID),        // The stake box must still contain the stake token given from the stake state box
+						(stakeBox.R4[Coll[Long]].get(0) == checkpoint)  // The input stake box must be the same as this current box with the same emission checkpoint
+					))
+
 				}
 
 				// Conditions for a valid unstake proxy input box
