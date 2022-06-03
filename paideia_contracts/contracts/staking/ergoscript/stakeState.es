@@ -192,7 +192,7 @@
             if (isInitialStake) {
 
                 // Stake tx inputs
-                val stakeSateBox: Box = INPUTS(0)
+                val stakeStateBox: Box = INPUTS(0)
                 val stakeProxyBox: Box = INPUTS(1)
 
                 // Stake tx outputs
@@ -220,7 +220,7 @@
                         (checkpointTimestampOut == checkpointTimestamp),
 
                         // Check that the amount of stake tokens has decreased
-                        (newStakeStateBox.tokens(1)._2 == SELF.tokens(1)._2-1),
+                        (newStakeStateBox.tokens(1)._2 == SELF.tokens(1)._2-1)
                             
                     ))
 
@@ -244,7 +244,7 @@
                         (newStakeBox.R5[Coll[Byte]].get == SELF.id),
 
                         // Check that the new stake box has 1 stake token given from the current stake state box
-                        (newStakeBox.tokens(0)._1 == SELF.tokens(1)._1),
+                        (newStakeBox.tokens(0)._1 == stakeTokenID),
                         (newStakeBox.tokens(0)._2 == 1L),
 
                         // Check that the new stake box has the minimum amount of DAO tokens staked in it
@@ -289,7 +289,7 @@
                 // ===== Perform Add Stake Tx ===== //
 
                 // Add stake tx inputs
-                val stakeSateBox: Box = INPUTS(0)
+                val stakeStateBox: Box = INPUTS(0)
                 val stakeBox: Box = INPUTS(1)
                 val addStakeProxyBox: Box = INPUTS.getOrElse(2, INPUTS(0))
 
@@ -346,7 +346,7 @@
                         (newStakeBox.R5[Coll[Byte]].get == stakeBox.R5[Coll[Byte]].get),
 
                         // Check that the output stake box has the same id and amount of the stake token 
-                        (newStakeBox.tokens(0)._1 == SELF.tokens(1)._1),
+                        (newStakeBox.tokens(0)._1 == stakeTokenID),
                         (newStakeBox.tokens(0)._2 == 1L),
 
                         // Check that output stake box contains the same DAO token id and the added tokens to be staked from the input proxy contract
@@ -399,7 +399,6 @@
         // Emit Tx Input
         val stakeStateBox: Box = INPUTS(0)
         val stakePoolBox: Box = INPUTS(1)
-        val emissionBox: Box = INPUTS(2)
 
         // Conditions for valid emit tx inputs
         val validEmitInputs: Boolean = {
@@ -412,6 +411,8 @@
         }
 
         if (validEmitInputs) {
+
+            val emissionBox: Box = INPUTS(2)
 
             // Conditions for a valid output stake state box
             val validNewStakeStateBox: Boolean = {
@@ -477,7 +478,6 @@
         // Unstake Tx Inputs
         val stakeStateBox: Box = INPUTS(0)
         val stakeBox: Box = INPUTS(1)
-        val unstakeProxyBox: Box = INPUTS(2)
 
         // Conditions for valid unstake tx inputs
         val validUnstakeInputs: Boolean = {
@@ -491,6 +491,8 @@
         }
 
         if (validUnstakeInputs) {
+
+            val unstakeProxyBox: Box = INPUTS(2)
 
             // Unstake Tx Outputs
             val userWalletBox: Box = OUTPUTS(1)
@@ -603,8 +605,8 @@
                                 (newStakeBox.tokens.getOrElse(1, (Coll[Byte](), 0L))._2 == remainingStakeAmount),
                                 
                                 // The new stake box keeps the same parameters as the previous stake box: Checkpoint and Staking Time
-                                (newStakeBox.R4[Coll[Long]].get == stakeBox.R4[Coll[Long]].get)
-
+                                (newStakeBox.R4[Coll[Long]].get(0) == stakeBox.R4[Coll[Long]].get(0)),
+                                (newStakeBox.R4[Coll[Long]].get(1) == stakeBox.R4[Coll[Long]].get(1))
                             ))
 
                         }
@@ -625,6 +627,7 @@
                     }
 
                     allOf(Coll(
+                        validUnstakeInputsAndOutputs,
                         validPartialUnstakeInputsAndOutputs,
                         (remainingStakeAmount >= MinimumStake)
                     ))

@@ -96,13 +96,6 @@
         // Emit Tx Inputs
         val stakeStateBox: Box = INPUTS(0)
         val stakePoolBox:  Box = INPUTS(1)
-        val emissionBox:   Box = INPUTS(2)
-
-        // Emit Tx Outputs
-        val newStakeStateBox: Box = OUTPUTS(0)
-        val newStakePoolBox:  Box = OUTPUTS(1)
-        val newEmissionBox:   Box = OUTPUTS(2)
-        val emissionFeeBox:   Box = OUTPUTS(3)
 
         // Check conditions for valid inputs into the emit tx
         val validEmitInputs: Boolean = {
@@ -115,6 +108,14 @@
         }
 
         if (validEmitInputs) {
+            // Emit Tx Inputs
+            val emissionBox:      Box = INPUTS(2)
+
+            // Emit Tx Outputs
+            val newStakeStateBox: Box = OUTPUTS(0)
+            val newStakePoolBox:  Box = OUTPUTS(1)
+            val newEmissionBox:   Box = OUTPUTS(2)
+            val emissionFeeBox:   Box = OUTPUTS(3)
                 
             // Get the amount of tokens alloted for emission
             val emissionAmount : Long = SELF.R4[Coll[Long]].get(0)
@@ -172,7 +173,7 @@
                     (newStakePoolBox.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get),
                     
                     // Check that the DAO token id is the same for the new stake pool box
-                    (newStakePoolBox.R5[Coll[Long]].get == SELF.R5[Coll[Long]].get),
+                    (newStakePoolBox.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get),
 
                     // Update the total amount of staked tokens after the emit tx
                     (newStakeStateBox.R4[Coll[Long]].get(0) == (totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust))
