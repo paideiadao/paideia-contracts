@@ -484,8 +484,8 @@
 
             allOf(Coll(
                 (totalAmountStaked > totalAmountStakedOut),  // Funds are being withdrawn from the total amount staked
-                (INPUTS.size >= 3),							 // The stake state box, the stake box, and the unstake proxy box
-                (stakeBox.tokens.size > 1)					 // The stake box should have DAO tokens inside of it ready to be withdrawn from the staking protocol
+                (INPUTS.size >= 3),                          // The stake state box, the stake box, and the unstake proxy box
+                (stakeBox.tokens.size > 1)                   // The stake box should have DAO tokens inside of it ready to be withdrawn from the staking protocol
             ))
 
         }
