@@ -1178,6 +1178,39 @@ class StakingConfig:
     unstakeProxyContract: UnstakeProxyContract = None
     stakingIncentiveContract: StakingIncentiveContract = None
 
+def PaideiaConfig(appKit: ErgoAppKit) -> StakingConfig:
+    result = StakingConfig(
+        appKit = appKit,
+        stakeStateNFT = "b682ad9e8c56c5a0ba7fe2d3d9b2fbd40af989e8870628f4a03ae1022d36f091",
+        stakePoolNFT = "93cda90b4fe24f075d7961fa0d1d662fdc7e1349d313059b9618eecb16c5eade",
+        emissionNFT = "12bbef36eaa5e61b64d519196a1e8ebea360f18aba9b02d2a21b16f26208960f",
+        stakeTokenId = "245957934c20285ada547aa8f2c8e6f7637be86a1985b3e4c36e4e1ad8ce97ab",
+        stakedTokenId = "1fd6e032e8476c4aa54c18c1a308dce83940e8f4a28f576440513ed7326ad489",
+        stakePoolKey = "b311425409ff2e8f5901d230788c6628b5846be0b9c66621e4880b086dd5eaef",
+        stakedTokenName = "Paideia",
+        stakedTokenDecimals = 4,
+        proxyToStakingIncentive = int(1e8),
+        proxyAddToStakingIncentive = int(1e7),
+        proxyExecutorReward = int(2e6),
+        proxyMinerFee = int(2e6),
+        dustCollectionReward = int(5e5),
+        dustCollectionMinerFee = int(1e6),
+        emitReward = int(3e6),
+        emitMinerFee = int(1e6),
+        baseCompoundReward = int(5e5),
+        baseCompoundMinerFee = int(1e6),
+        variableCompoundReward = int(15e4),
+        variableCompoundMinerFee = int(1e5))
+    result.stakeContract = StakeContract(result)
+    result.stakeStateContract = StakeStateContract(result)
+    result.stakePoolContract = StakePoolContract(result)
+    result.emissionContract = EmissionContract(result)
+    result.stakingIncentiveContract = StakingIncentiveContract(result)
+    result.stakeProxyContract = StakeProxyContract(result)
+    result.addStakeProxyContract = AddStakeProxyContract(result)
+    result.unstakeProxyContract = UnstakeProxyContract(result)
+    return result
+
 def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         appKit = appKit,
