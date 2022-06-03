@@ -12,10 +12,10 @@
     //   R5[Coll[Byte]]: Stake Pool Key
     // Tokens:
     //   0:
-    //     _1: Stake Pool NFT: Identifier for the stake pool box.
+    //     _1: Stake Pool NFT  // Identifier for the stake pool box.
     //     _2: Amount: 1
     //   1:
-    //     _1: DAO Token ID: Token issued by the DAO for distribution
+    //     _1: DAO Token ID  // Token issued by the DAO for distribution
     //     _2: Amount: <= Total DAO Tokens Amount
 
     // ===== Stake State Box ===== //
@@ -28,10 +28,10 @@
     //     4: Cycle Duration 
     // Tokens:
     //   0: 
-    //     _1: Stake State NFT: Identifier for the stake state box.
+    //     _1: Stake State NFT  // Identifier for the stake state box.
     //     _2: Amount: 1  
     //   1: 
-    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _1: Stake Token  // Token proving that the stake box was created properly.
     //     _2: Amount: <= 1 Billion
 
     // ===== Emission Box ===== //
@@ -43,10 +43,10 @@
     //     3: Emission Amount
     // Tokens:
     //   0: 
-    //     _1: Emission NFT: Identifier for the emission box.
+    //     _1: Emission NFT  // Identifier for the emission box.
     //     _2: Amount: 1
     //   1: 
-    //     _1: DAO Token ID: Tokens to be emitted by the DAO.
+    //     _1: DAO Token ID  // Tokens to be emitted by the DAO.
     //     _2: Amount: <= DAO Token Emission Amount
 
     // ===== Stake Box ===== //
@@ -54,21 +54,22 @@
     //   R4[Coll[Long]]:
     //     0: Checkpoint
     //     1: Staking Time
-    //   R5[Coll[Byte]]: Stake Key ID // ID of the stake key used for unstaking.
+    //   R5[Coll[Byte]]: Stake Key ID  // ID of the stake key used for unstaking.
     // Tokens:
     //   0:
-    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _1: Stake Token  // Token proving that the stake box was created properly.
     //     _2: Amount: 1
     //   1:
-    //     _1: DAO Token: Token issued by the DAO, which the user wishes to stake.
+    //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
     //     _2: Amount: > 0
 
     // ===== Emission Fee Box ===== //
     // Tokens:
     //   0:
-    //     _1: DAO Token: Token issued by the DAO.
+    //     _1: DAO Token  // Token issued by the DAO.
     //     _2: Amount: 1% fee
     //			
+
     // ===== Emit Tx ===== //
     // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
     // Inputs: StakeStateBox, StakePoolBox, EmissionBox, StakingIncentiveBox
@@ -92,12 +93,12 @@
     // Check conditions for a valid Emit Tx
     val validEmitTx: Boolean = {
 
-        // Emit tx inputs
+        // Emit Tx Inputs
         val stakeStateBox: Box = INPUTS(0)
         val stakePoolBox:  Box = INPUTS(1)
         val emissionBox:   Box = INPUTS(2)
 
-        // Emit tx outputs
+        // Emit Tx Outputs
         val newStakeStateBox: Box = OUTPUTS(0)
         val newStakePoolBox:  Box = OUTPUTS(1)
         val newEmissionBox:   Box = OUTPUTS(2)
@@ -140,12 +141,15 @@
                     if (remainingStakePoolTokensAndEmissionDust > emissionAmount) {
 
                         allOf(Coll(
+
+                            // DAO tokens used for emission
                             (newStakePoolBox.tokens(1)._1 == SELF.tokens(1)._1),
                             (newStakePoolBox.tokens(1)._2 == remainingStakePoolTokensAndEmissionDust - emissionAmount)
+
                         ))
 
                     } else {
-                        newStakePoolBox.tokens.size == 1)
+                        (newStakePoolBox.tokens.size == 1) // No more DAO tokens
                     }
 
                 }
@@ -194,7 +198,7 @@
             }
 
             allOf(Coll(
-                validNewEmissionBox,
+                validNewStakePoolBox,
                 validEmissionFeeBox
             ))
 
@@ -217,7 +221,7 @@
 
         // Check that the inputs to the remove funds tx are valid
         val validRemoveFundsInput: Boolean = {
-            stakePoolBox.id == SELF.id)
+            (stakePoolBox.id == SELF.id)
         }
 
         if (validRemoveFundsInput) {

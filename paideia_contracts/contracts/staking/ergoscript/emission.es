@@ -15,10 +15,10 @@
     //     3: Emission Amount
     // Tokens:
     //   0: 
-    //     _1: Emission NFT: Identifier for the emission box.
+    //     _1: Emission NFT  // Identifier for the emission box.
     //     _2: Amount: 1
     //   1: 
-    //     _1: DAO Token ID: Tokens to be emitted by the DAO.
+    //     _1: DAO Token ID  // Tokens to be emitted by the DAO.
     //     _2: Amount: <= DAO Token Emission Amount
 
     // ===== Stake State Box ===== //
@@ -31,10 +31,10 @@
     //     4: Cycle Duration 
     // Tokens:
     //   0: 
-    //     _1: Stake State NFT: Identifier for the stake state box.
+    //     _1: Stake State NFT  // Identifier for the stake state box.
     //     _2: Amount: 1  
     //   1: 
-    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _1: Stake Token  // Token proving that the stake box was created properly.
     //     _2: Amount: <= 1 Billion
 
     // ===== Stake Pool Box ===== //
@@ -43,10 +43,10 @@
     //   R5[Coll[Byte]]: Stake Pool Key
     // Tokens:
     //   0:
-    //     _1: Stake Pool NFT: Identifier for the stake pool box.
+    //     _1: Stake Pool NFT  // Identifier for the stake pool box.
     //     _2: Amount: 1
     //   1:
-    //     _1: DAO Token ID: Token issued by the DAO for distribution
+    //     _1: DAO Token ID  // Token issued by the DAO for distribution
     //     _2: Amount: <= Total DAO Tokens Amount
 
     // ===== Stake Box ===== //
@@ -54,13 +54,13 @@
     //   R4[Coll[Long]]:
     //     0: Checkpoint
     //     1: Staking Time
-    //   R5[Coll[Byte]]: Stake Key ID // ID of the stake key used for unstaking.
+    //   R5[Coll[Byte]]: Stake Key ID  // ID of the stake key used for unstaking.
     // Tokens:
     //   0:
-    //     _1: Stake Token: Token proving that the stake box was created properly.
+    //     _1: Stake Token  // Token proving that the stake box was created properly.
     //     _2: Amount: 1
     //   1:
-    //     _1: DAO Token: Token issued by the DAO, which the user wishes to stake.
+    //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
     //     _2: Amount: > 0
 
     // ===== Emit Tx ===== //
@@ -152,10 +152,10 @@
     // Check conditions for a valid compound tx
     val validCompoundTx: Boolean = {
 
-        // Compound tx inputs
+        // Compound Tx Inputs
         val emissionBox: Box = INPUTS(0)
 
-        // Compound tx outputs
+        // Compound Tx Outputs
         val newEmissionBox: Box = OUTPUTS(0)
 
         // Check for a valid compound tx input
