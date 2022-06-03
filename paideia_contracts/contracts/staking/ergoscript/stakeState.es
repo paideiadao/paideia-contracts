@@ -140,7 +140,7 @@
     val stakeTokenID: Coll[Byte]   = SELF.tokens(1)._1
 
     // Output stake state box parameters
-    val newStakeStateBox: Box 		  = OUTPUTS(0)
+    val newStakeStateBox: Box         = OUTPUTS(0)
     val totalAmountStakedOut: Long    = newStakeStateBox.R4[Coll[Long]].get(0)
     val checkpointOut: Long           = newStakeStateBox.R4[Coll[Long]].get(1)
     val stakersOut: Long              = newStakeStateBox.R4[Coll[Long]].get(2)
