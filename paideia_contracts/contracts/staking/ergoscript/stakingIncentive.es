@@ -2,7 +2,7 @@
 
     // ===== Contract Information ===== //
     // Name: stakingIncentive
-    // Description: Contract that governs the consolidate, emit, compound, and stakePoolKey txs for the staking incentive box.
+    // Description: Contract that governs the consolidate, emit, compound, and remove funds txs for the staking incentive box.
     // Version: 1.0
     // Authors: Lui, Luca
 
