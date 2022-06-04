@@ -139,7 +139,7 @@
         if (validCompoundTxInput) {
 
             // Compount Tx variables
-            val totalAmountStaked: Long = emissionBox.R4[Coll[Long]].get(0)                // Get the total amount staked parameter from the emission box
+            val totalAmountStaked: Long = emissionBox.R4[Coll[Long]].get(0)               // Get the total amount staked parameter from the emission box
             val emissionAmount: BigInt = emissionBox.R4[Coll[Long]].get(3).toBigInt       // Get the alloted emission amount parameter from the emission box
             val rewardAmount: Long = (emissionAmount * stakedAmount) / totalAmountStaked  // Reward amount given to staker for the compound tx
             val stakeBoxIndex: Long = INPUTS.indexOf(SELF, 1)                             // Get the index of the current stake box  
