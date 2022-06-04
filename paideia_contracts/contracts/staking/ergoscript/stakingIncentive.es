@@ -183,7 +183,7 @@
                 (stakeStateBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == StakeStateNFT),
 
                 // Check that the input emission box contains the NFT identifier
-                (emissionBox.tokens.getOrElse(0, (Coll[Byte](),0L))._1 == EmissionNFT),
+                (emissionBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == EmissionNFT),
 
                 // Check that the current staking incentive box is part of the emit tx inputs
                 (INPUTS(INPUTS.size-1).id == SELF.id)
