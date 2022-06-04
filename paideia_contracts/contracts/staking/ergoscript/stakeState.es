@@ -63,6 +63,11 @@
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
     //     _2: Amount: > 0
 
+    // ===== Staking Incentive Box ===== //
+    // Value: ERG to pay the tx execution bot and the tx mining fee.
+    // Registers: None
+    // Tokens: None
+
     // ===== Stake Proxy Box ===== //
     // Registers:
     //   R4[Coll[Long]]:

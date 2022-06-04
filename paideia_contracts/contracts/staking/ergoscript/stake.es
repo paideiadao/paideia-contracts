@@ -226,7 +226,7 @@
             
             // Check conditions for a partial unstake tx
             val isPartialUnstake: Boolean = {
-                (newStakeBox.propositionBytes == SELF.propositionBytes)
+                (newStakeBox.propositionBytes == SELF.propositionBytes)  // Check that the new stake box is guarded by the same contract
             }
 
             if (isPartialUnstake) {
@@ -254,7 +254,7 @@
                 ))
 
             } else {
-                true
+                true  // Having valid inputs to the unstake tx is the only thing needed for a valid unstake tx.
             }
 
         } else {
@@ -281,7 +281,7 @@
 
         }
 
-        // The stake box only checks for valid inputs to the add stake tx
+        // The stake box contract only checks for valid inputs to the add stake tx
         validAddStakeInputs
 
     }
