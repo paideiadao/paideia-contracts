@@ -97,19 +97,19 @@
     // Outputs: NewStakePoolBox
 
     // ===== Hard-Coded Constants ===== //
-    val EmissionNFT: Coll[Byte]        = _emissionNFT               // Identifier for the emission box
-    val StakeStateNFT: Coll[Byte]      = _stakeStateNFT             // Identifier for the stake state box
-    val StakeTokenID: Coll[Byte]       = _stakeTokenID              // Token proving that the stake box was created properly
-    val StakePoolKey: Coll[Byte]       = _stakePoolKey              // Stake pool key used for accessing the stake pool box funds
-    val DustCollectionReward: Long     = _dustCollectionReward      // Dust consolidation tx reward for the execution bot
-    val DustCollectionMinerFee: Long   = _dustCollectionMinerFee    // Dust consolidation tx miner fee
-    val EmitReward: Long               = _emitReward                // Emit tx reward for the execution bot
-    val EmitMinerFee: Long             = _emitMinerFee              // Emit tx miner fee
-    val BaseCompoundReward: Long       = _baseCompoundReward        // Base compound tx reward for the execution bot
-    val BaseCompoundMinerFee: Long     = _baseCompoundMinerFee      // Base compound tx miner fee
-    val VariableCompoundReward: Long   = _variableCompoundReward    // Variable compound tx reward for the excution bot
-    val VariableCompoundMinerFee: Long = _variableCompoundMinerFee  // Variable compound tx miner fee
-    val stakingIncentiveBoxMaxValue: Long = 100000000
+    val EmissionNFT: Coll[Byte]           = _emissionNFT               // Identifier for the emission box
+    val StakeStateNFT: Coll[Byte]         = _stakeStateNFT             // Identifier for the stake state box
+    val StakeTokenID: Coll[Byte]          = _stakeTokenID              // Token proving that the stake box was created properly
+    val StakePoolKey: Coll[Byte]          = _stakePoolKey              // Stake pool key used for accessing the stake pool box funds
+    val DustCollectionReward: Long        = _dustCollectionReward      // Dust consolidation tx reward for the execution bot
+    val DustCollectionMinerFee: Long      = _dustCollectionMinerFee    // Dust consolidation tx miner fee
+    val EmitReward: Long                  = _emitReward                // Emit tx reward for the execution bot
+    val EmitMinerFee: Long                = _emitMinerFee              // Emit tx miner fee
+    val BaseCompoundReward: Long          = _baseCompoundReward        // Base compound tx reward for the execution bot
+    val BaseCompoundMinerFee: Long        = _baseCompoundMinerFee      // Base compound tx miner fee
+    val VariableCompoundReward: Long      = _variableCompoundReward    // Variable compound tx reward for the excution bot
+    val VariableCompoundMinerFee: Long    = _variableCompoundMinerFee  // Variable compound tx miner fee
+    val StakingIncentiveBoxMaxValue: Long = 100000000                  // Max value the staking incentive box can have
 
     // ===== Perform Consolidate Tx ===== //
 
@@ -119,18 +119,18 @@
         // Condition for a consolidation tx to occur
         val isConsolidateTx: Boolean = {
             allOf(Coll(
-                (SELF.value <= stakingIncentiveBoxMaxValue),
+                (SELF.value <= StakingIncentiveBoxMaxValue),
                 (OUTPUTS.size == 3)
             ))
         }
 
         if (isConsolidateTx) {
 
-            // Consolidate Tx Variables
-            val StakingIncentiveDustBoxesAmount: Long = INPUTS.filter({(input: Box) => input.propositionBytes == SELF.propositionBytes}).size
-            val consolidateRewardAmount: Long = DustCollectionReward * StakingIncentiveDustBoxesAmount
+            //Consolidate Tx Variables
+            val stakingIncentiveDustBoxesAmount: Int = INPUTS.filter({(input: Box) => (input.propositionBytes == SELF.propositionBytes)}).size
+            val consolidateRewardAmount: Long = DustCollectionReward * stakingIncentiveDustBoxesAmount
             
-            // Consolidate Tx Outputs
+            //Consolidate Tx Outputs
             val newStakingIncentiveBox: Box = OUTPUTS(0)
             val txOperatorOutputBox: Box = OUTPUTS(1)
             val minerFeeBox: Box = OUTPUTS(2)
@@ -170,25 +170,32 @@
     // Conditions for a valid emit tx
     val validEmitTx: Boolean = {
 
-        // Emit Tx Inputs
-        val stakeStateBox: Box = INPUTS(0)
-        val emissionBox: Box = INPUTS(2)
-
         // Conditions for valid inputs to the emit tx
         val validEmitInputs: Boolean = {
 
-            allOf(Coll(
+            // Check INPUTS size
+            if (INPUTS.size >= 3) {
 
-                // Check that the input stake state box contains the NFT identifier
-                (stakeStateBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == StakeStateNFT),
+                // Emit Tx Inputs
+                val stakeStateBox: Box = INPUTS(0)
+                val emissionBox: Box = INPUTS(2)
 
-                // Check that the input emission box contains the NFT identifier
-                (emissionBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == EmissionNFT),
+                allOf(Coll(
 
-                // Check that the current staking incentive box is part of the emit tx inputs
-                (INPUTS(INPUTS.size-1).id == SELF.id)
+                    // Check that the input stake state box contains the NFT identifier
+                    (stakeStateBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == StakeStateNFT),
 
-            ))
+                    // Check that the input emission box contains the NFT identifier
+                    (emissionBox.tokens.getOrElse(0, (Coll[Byte](), 0L))._1 == EmissionNFT),
+
+                    // Check that the current staking incentive box is part of the emit tx inputs
+                    (INPUTS(INPUTS.size-1).id == SELF.id)
+
+                ))
+
+            } else {
+                false
+            }
 
         }
 
@@ -202,8 +209,8 @@
             // Conditions for a valid new staking incentive box
             val validNewStakingIncentiveBox: Boolean = {
                 allOf(Coll(
-                    (newStakingIncentiveBox.value >= SELF.value - EmitReward - EmitMinerFee),  // Check that the new staking incentive box can provide the necessary rewards
-                    (newStakingIncentiveBox.propositionBytes == SELF.propositionBytes)         // Check that the new staking incentive box is guarded by the same contract
+                    (newStakingIncentiveBox.value >= SELF.value - EmitReward - EmitMinerFee - 1000000),  // Check that the new staking incentive box can provide the necessary rewards
+                    (newStakingIncentiveBox.propositionBytes == SELF.propositionBytes)                   // Check that the new staking incentive box is guarded by the same contract
                 ))
             }
 
@@ -257,7 +264,7 @@
         if (validCompoundInputs) {
 
             // Compound Tx Variables
-            val stakeBoxesAmount: Long = INPUTS.filter({(input: Box) => 
+            val stakeBoxesAmount: Int = INPUTS.filter({(input: Box) => 
 
                 // Check if the input box has tokens in it
                 if (input.tokens.size > 0) {
