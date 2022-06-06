@@ -63,6 +63,11 @@
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
     //     _2: Amount: > 0
 
+    // ===== Staking Incentive Box ===== //
+    // Value: ERG to pay the tx execution bot and the tx mining fee.
+    // Registers: None
+    // Tokens: None
+
     // ===== Emit Tx ===== //
     // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
     // Inputs: StakeStateBox, StakePoolBox, EmissionBox, StakingIncentiveBox

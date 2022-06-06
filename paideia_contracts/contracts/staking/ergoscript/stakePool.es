@@ -68,7 +68,11 @@
     //   0:
     //     _1: DAO Token  // Token issued by the DAO.
     //     _2: Amount: 1% fee
-    //			
+
+    // ===== Staking Incentive Box ===== //
+    // Value: ERG to pay the tx execution bot and the tx mining fee.
+    // Registers: None
+    // Tokens: None
 
     // ===== Emit Tx ===== //
     // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.

@@ -63,6 +63,11 @@
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
     //     _2: Amount: > 0
 
+    // ===== Staking Incentive Box ===== //
+    // Value: ERG to pay the tx execution bot and the tx mining fee.
+    // Registers: None
+    // Tokens: None
+
     // ===== Stake Proxy Box ===== //
     // Registers:
     //   R4[Coll[Long]]:
@@ -127,7 +132,7 @@
     val BlockTime: Long           = CONTEXT.preHeader.timestamp  // Timestamp from blockchain preheader
     val StakedTokenID: Coll[Byte] = _stakedTokenID				 // Token identifier for the token distributed by the DAO
     val StakePoolNFT: Coll[Byte]  = _stakePoolNFT                // Identifier for the stake pool box
-    val EmissionNFT: Coll[Byte]   = _emissionNFT                 // Identifier for the stake emission box
+    val EmissionNFT: Coll[Byte]   = _emissionNFT                 // Identifier for the emission box
     val StakeContract: Coll[Byte] = _stakeContractHash           // Hash of the staking contract P2S address
     val MinimumStake: Long        = 1000L                        // Minimum amount of DAO tokens required for staking
 
