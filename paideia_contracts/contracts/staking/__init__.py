@@ -287,8 +287,8 @@ class EmissionBox(ErgoBox):
 
 class StakeBox(ErgoBox):
     def __init__(self, appKit: ErgoAppKit, stakeContract: StakeContract, checkpoint: int, stakeTime: int, amountStaked: int, stakeKey: str) -> None:
-        if amountStaked < 10*10**stakeContract.config.stakedTokenDecimals:
-            raise InvalidInputBoxException("Stake box needs more than 10 tokens")
+        if amountStaked < 1000:
+            raise InvalidInputBoxException("Stake box needs more than 1000 tokens")
         self.stakeContract = stakeContract
         tokens = {self.stakeContract.config.stakeTokenId: 1, self.stakeContract.config.stakedTokenId: amountStaked}
         registers = [
