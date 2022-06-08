@@ -14,7 +14,7 @@ This repository can also be installed as a python library and used within your o
 
 # Overall Architecture
 
-![Paideia Architecture](img/Paideia%20-%20Paideia%20Architecture.jpg)
+![Paideia Architecture](paideia_contracts/img/Paideia%20-%20Paideia%20Architecture.jpg)
 
 Paideia consists of a number of interacting modules.
 
