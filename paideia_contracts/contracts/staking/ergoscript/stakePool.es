@@ -13,10 +13,10 @@
     // Tokens:
     //   0:
     //     _1: Stake Pool NFT  // Identifier for the stake pool box.
-    //     _2: Amount: 1
+    //     _2: 1
     //   1:
     //     _1: DAO Token ID  // Token issued by the DAO for distribution
-    //     _2: Amount: <= Total DAO Tokens Amount
+    //     _2: <= Total DAO Tokens Amount
 
     // ===== Stake State Box ===== //
     // Registers:
@@ -29,10 +29,10 @@
     // Tokens:
     //   0: 
     //     _1: Stake State NFT  // Identifier for the stake state box.
-    //     _2: Amount: 1  
+    //     _2: 1  
     //   1: 
     //     _1: Stake Token  // Token proving that the stake box was created properly.
-    //     _2: Amount: <= 1 Billion
+    //     _2: <= 1 Billion
 
     // ===== Emission Box ===== //
     // Registers:
@@ -44,10 +44,10 @@
     // Tokens:
     //   0: 
     //     _1: Emission NFT  // Identifier for the emission box.
-    //     _2: Amount: 1
+    //     _2: 1
     //   1: 
     //     _1: DAO Token ID  // Tokens to be emitted by the DAO.
-    //     _2: Amount: <= DAO Token Emission Amount
+    //     _2: <= DAO Token Emission Amount
 
     // ===== Stake Box ===== //
     // Registers:
@@ -58,16 +58,16 @@
     // Tokens:
     //   0:
     //     _1: Stake Token  // Token proving that the stake box was created properly.
-    //     _2: Amount: 1
+    //     _2: 1
     //   1:
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
-    //     _2: Amount: > 0
+    //     _2: > 0
 
     // ===== Emission Fee Box ===== //
     // Tokens:
     //   0:
     //     _1: DAO Token  // Token issued by the DAO.
-    //     _2: Amount: 1% fee
+    //     _2: 1% fee
 
     // ===== Staking Incentive Box ===== //
     // Value: ERG to pay the tx execution bot and the tx mining fee.
@@ -79,7 +79,7 @@
     // Inputs: StakeStateBox, StakePoolBox, EmissionBox, StakingIncentiveBox
     // DataInputs: None
     // Context Extension Variables: None
-    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox, EmissionFeeBox, StakingIncentiveBox, TxOperatorOutput
+    // Outputs: NewStakeStateBox, NewStakePoolBox, NewEmissionBox, EmissionFeeBox, NewStakingIncentiveBox, TxOperatorOutput
 
     // ===== Remove Funds Tx ===== //
     // Description: Removing funds from the stake pool box.
@@ -136,6 +136,14 @@
             // The emisson fee taken from the stake pool is 1% of the alloted emission amount 
             val emissionFeeAmount: Long = emissionAmount / 100L
 
+            // Conditions for a valid new stake state box
+            val validNewStakeStateBox: Boolean = {
+                
+                // Update the total amount of staked tokens after the emit tx
+                (newStakeStateBox.R4[Coll[Long]].get(0) == (totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust))
+
+            }
+
             // Check for that a valid new stake pool box was created as an output
             val validNewStakePoolBox: Boolean = {
 
@@ -177,10 +185,7 @@
                     (newStakePoolBox.R4[Coll[Long]].get == SELF.R4[Coll[Long]].get),
                     
                     // Check that the DAO token id is the same for the new stake pool box
-                    (newStakePoolBox.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get),
-
-                    // Update the total amount of staked tokens after the emit tx
-                    (newStakeStateBox.R4[Coll[Long]].get(0) == (totalAmountStaked + (emissionAmount - emissionFeeAmount) - emissionDust))
+                    (newStakePoolBox.R5[Coll[Byte]].get == SELF.R5[Coll[Byte]].get)
                 
                 ))
 
@@ -194,7 +199,7 @@
                         
                     allOf(Coll(
                         (emissionFeeBox.propositionBytes == EmissionFeeAddress),  // Check contract bytes
-                        (emissionFeeBox.value == 1000000),                        // Minimum ERG value for box to exists
+                        (emissionFeeBox.value == 1000000),                        // Minimum ERG value for box existance
                         (emissionFeeBox.tokens(0)._1 == SELF.tokens(1)._1),       // DAO Token ID
                         (emissionFeeBox.tokens(0)._2 == emissionFeeAmount)        // 1% fee of DAO tokens
                     ))
@@ -206,6 +211,7 @@
             }
 
             allOf(Coll(
+                validNewStakeStateBox,
                 validNewStakePoolBox,
                 validEmissionFeeBox
             ))
