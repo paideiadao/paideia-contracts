@@ -40,7 +40,7 @@ class StakeContract(PaideiaStakingContract):
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
             "_emissionNFT": ErgoAppKit.ergoValue(stakingConfig.emissionNFT, ErgoValueT.ByteArrayFromHex).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stake.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/stake.es"),mapping=mapping)
   
     def validateInputBox(self, inBox: InputBox) -> bool:
         tokens = inBox.getTokens()
@@ -61,7 +61,7 @@ class StakeStateContract(PaideiaStakingContract):
             "_emissionNFT": ErgoAppKit.ergoValue(stakingConfig.emissionNFT, ErgoValueT.ByteArrayFromHex).getValue(),
             "_stakeContractHash": ErgoAppKit.ergoValue(blake2b(bytes.fromhex(stakingConfig.stakeContract._ergoTree.bytesHex()), digest_size=32).digest(), ErgoValueT.ByteArray).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakeState.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/stakeState.es"),mapping=mapping)
 
     def validateInputBox(self, inBox: InputBox) -> bool:
         tokens = inBox.getTokens()
@@ -80,7 +80,7 @@ class StakePoolContract(PaideiaStakingContract):
             "_stakeStateNFT": ErgoAppKit.ergoValue(stakingConfig.stakeStateNFT, ErgoValueT.ByteArrayFromHex).getValue(),
             "_emissionFeeAddress": ErgoAppKit.ergoValue("0008cd02189359b825e96aa3c7af90c9958d85daf8f86358382db3306e024c5aeea1e8ec", ErgoValueT.ByteArrayFromHex).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakePool.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/stakePool.es"),mapping=mapping)
 
     def validateInputBox(self, inBox: InputBox) -> bool:
         tokens = inBox.getTokens()
@@ -100,7 +100,7 @@ class EmissionContract(PaideiaStakingContract):
             "_stakeTokenID": ErgoAppKit.ergoValue(stakingConfig.stakeTokenId, ErgoValueT.ByteArrayFromHex).getValue(),
             "_stakedTokenID": ErgoAppKit.ergoValue(stakingConfig.stakedTokenId, ErgoValueT.ByteArrayFromHex).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/emission.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/emission.es"),mapping=mapping)
 
     def validateInputBox(self, inBox: InputBox) -> bool:
         tokens = inBox.getTokens()
@@ -129,7 +129,7 @@ class StakingIncentiveContract(PaideiaStakingContract):
             "_variableCompoundReward": ErgoAppKit.ergoValue(stakingConfig.variableCompoundReward, ErgoValueT.Long).getValue(),
             "_variableCompoundMinerFee": ErgoAppKit.ergoValue(stakingConfig.variableCompoundMinerFee, ErgoValueT.Long).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakingIncentive.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/stakingIncentive.es"),mapping=mapping)
 
 class StakeProxyContract(PaideiaStakingContract):
     def __init__(self, stakingConfig) -> None:
@@ -140,7 +140,7 @@ class StakeProxyContract(PaideiaStakingContract):
             "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
             "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/stakeProxy.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/stakeProxy.es"),mapping=mapping)
 
     def validateInputBox(self, inBox: InputBox) -> bool:
         registers = inBox.getRegisters()
@@ -157,7 +157,7 @@ class AddStakeProxyContract(PaideiaStakingContract):
             "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
             "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/addStakeProxy.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/addStakeProxy.es"),mapping=mapping)
 
     def validateInputBox(self, inBox: InputBox) -> bool:
         registers = inBox.getRegisters()
@@ -174,7 +174,7 @@ class UnstakeProxyContract(PaideiaStakingContract):
             "_executorReward": ErgoAppKit.ergoValue(stakingConfig.proxyExecutorReward, ErgoValueT.Long).getValue(),
             "_minerFee": ErgoAppKit.ergoValue(stakingConfig.proxyMinerFee, ErgoValueT.Long).getValue()
         }
-        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),"ergoscript/unstakeProxy.es"),mapping=mapping)
+        super().__init__(stakingConfig,script=os.path.join(os.path.dirname(__file__),f"ergoscript/{stakingConfig.version}/unstakeProxy.es"),mapping=mapping)
     
     def validateInputBox(self, inBox: InputBox) -> bool:
         registers = inBox.getRegisters()
@@ -287,8 +287,8 @@ class EmissionBox(ErgoBox):
 
 class StakeBox(ErgoBox):
     def __init__(self, appKit: ErgoAppKit, stakeContract: StakeContract, checkpoint: int, stakeTime: int, amountStaked: int, stakeKey: str) -> None:
-        if amountStaked < 10*10**stakeContract.config.stakedTokenDecimals:
-            raise InvalidInputBoxException("Stake box needs more than 10 tokens")
+        if amountStaked < 1000:
+            raise InvalidInputBoxException("Stake box needs more than 1000 tokens")
         self.stakeContract = stakeContract
         tokens = {self.stakeContract.config.stakeTokenId: 1, self.stakeContract.config.stakedTokenId: amountStaked}
         registers = [
@@ -1149,6 +1149,7 @@ class ConsolidateDustTransaction(ErgoTransaction):
 @dataclass
 class StakingConfig:
     appKit: ErgoAppKit
+    version: str
     stakeStateNFT: str
     stakePoolNFT: str
     emissionNFT: str
@@ -1181,6 +1182,7 @@ class StakingConfig:
 def PaideiaConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         appKit = appKit,
+        version = "1.0",
         stakeStateNFT = "b682ad9e8c56c5a0ba7fe2d3d9b2fbd40af989e8870628f4a03ae1022d36f091",
         stakePoolNFT = "93cda90b4fe24f075d7961fa0d1d662fdc7e1349d313059b9618eecb16c5eade",
         emissionNFT = "12bbef36eaa5e61b64d519196a1e8ebea360f18aba9b02d2a21b16f26208960f",
@@ -1214,6 +1216,7 @@ def PaideiaConfig(appKit: ErgoAppKit) -> StakingConfig:
 def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         appKit = appKit,
+        version = "latest",
         stakeStateNFT = "aad0b57e456c696841155d414184442ff269f233a3ac87f52050003c1bdce2cd",
         stakePoolNFT = "cefbfdad99eb0a3bf836d561d3c844df4d3a9d1e7a7c8479a9262165ce787b81",
         emissionNFT = "2ac6583dcbc11e13758ca846388dadb67d5f09fee27243c0f42fd280c625b347",
