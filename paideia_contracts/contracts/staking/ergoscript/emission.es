@@ -16,10 +16,10 @@
     // Tokens:
     //   0: 
     //     _1: Emission NFT  // Identifier for the emission box.
-    //     _2: Amount: 1
+    //     _2: 1
     //   1: 
     //     _1: DAO Token ID  // Tokens to be emitted by the DAO.
-    //     _2: Amount: <= DAO Token Emission Amount
+    //     _2: <= DAO Token Emission Amount
 
     // ===== Stake State Box ===== //
     // Registers:
@@ -32,10 +32,10 @@
     // Tokens:
     //   0: 
     //     _1: Stake State NFT  // Identifier for the stake state box.
-    //     _2: Amount: 1  
+    //     _2: 1  
     //   1: 
     //     _1: Stake Token  // Token proving that the stake box was created properly.
-    //     _2: Amount: <= 1 Billion
+    //     _2: <= 1 Billion
 
     // ===== Stake Pool Box ===== //
     // Registers:
@@ -44,10 +44,10 @@
     // Tokens:
     //   0:
     //     _1: Stake Pool NFT  // Identifier for the stake pool box.
-    //     _2: Amount: 1
+    //     _2: 1
     //   1:
     //     _1: DAO Token ID  // Token issued by the DAO for distribution
-    //     _2: Amount: <= Total DAO Tokens Amount
+    //     _2: <= Total DAO Tokens Amount
 
     // ===== Stake Box ===== //
     // Registers:
@@ -58,10 +58,15 @@
     // Tokens:
     //   0:
     //     _1: Stake Token  // Token proving that the stake box was created properly.
-    //     _2: Amount: 1
+    //     _2: 1
     //   1:
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
-    //     _2: Amount: > 0
+    //     _2: > 0
+
+    // ===== Staking Incentive Box ===== //
+    // Value: ERG to pay the tx execution bot and the tx mining fee.
+    // Registers: None
+    // Tokens: None
 
     // ===== Staking Incentive Box ===== //
     // Value: ERG to pay the tx execution bot and the tx mining fee.
