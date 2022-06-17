@@ -17,15 +17,10 @@
     // Tokens:
     //   0: 
     //     _1: Stake State NFT  // Identifier for the stake state box.
-    //     _2: 1  
+    //     _2: Amount: 1  
     //   1: 
     //     _1: Stake Token  // Token proving that the stake box was created properly.
-    //     _2: <= 1 Billion
-
-    // ===== Stake Proxy Box ===== //
-    // Registers:
-    //   R4[Long]: Stake Time
-    //   R5[Coll[Byte]]: User ErgoTree bytes
+    //     _2: Amount: <= 1 Billion
 
     // ===== Stake Pool Box ===== //
     // Registers:
@@ -34,10 +29,10 @@
     // Tokens:
     //   0:
     //     _1: Stake Pool NFT  // Identifier for the stake pool box.
-    //     _2: 1
+    //     _2: Amount: 1
     //   1:
     //     _1: DAO Token ID  // Token issued by the DAO for distribution
-    //     _2: <= Total DAO Tokens Amount
+    //     _2: Amount: <= Total DAO Tokens Amount
 
     // ===== Emission Box ===== //
     // Registers:
@@ -49,10 +44,10 @@
     // Tokens:
     //   0: 
     //     _1: Emission NFT  // Identifier for the emission box.
-    //     _2: 1
+    //     _2: Amount: 1
     //   1: 
     //     _1: DAO Token ID  // Tokens to be emitted by the DAO.
-    //     _2: <= DAO Token Emission Amount
+    //     _2: Amount: <= DAO Token Emission Amount
 
     // ===== Stake Box ===== //
     // Registers:
@@ -63,20 +58,10 @@
     // Tokens:
     //   0:
     //     _1: Stake Token  // Token proving that the stake box was created properly.
-    //     _2: 1
+    //     _2: Amount: 1
     //   1:
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
-    //     _2: > 0
-
-    // ===== Staking Incentive Box ===== //
-    // Value: ERG to pay the tx execution bot and the tx mining fee.
-    // Registers: None
-    // Tokens: None
-
-    // ===== Staking Incentive Box ===== //
-    // Value: ERG to pay the tx execution bot and the tx mining fee.
-    // Registers: None
-    // Tokens: None
+    //     _2: Amount: > 0
 
     // ===== Stake Proxy Box ===== //
     // Registers:
@@ -86,7 +71,7 @@
     // Tokens:
     //   0:
     //     _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
-    //     _2: > 0 amount that the user owns and wants to stake, and sent to the proxy box.
+    //     _2: Amount: > 0 amount that the user owns and wants to stake, and sent to the proxy box.
 
     // ===== Unstake Proxy Box ===== //
     // Registers:
@@ -96,7 +81,7 @@
     // Tokens:
     //  0:
     //    _1: Stake Key  // Sent from the user to the unstake proxy box
-    //    _2: 1
+    //    _2: Amount: 1
 
     // ===== Add Stake Proxy Box ===== //
     // Registers:
@@ -106,21 +91,21 @@
     // Tokens:
     //  0:
     //    _1: Stake Key  // NFT used as a key for adding stake as well as unstaking
-    //    _2:  1
+    //    _2: Amount: 1
     //  1:
     //    _1: DAO Token  // Token issued by the DAO, which the user wishes to stake.
-    //    _2: > 0 amount that the uers owns and wants to additionally stake.
+    //    _2: Amount: > 0 amount that the uers owns and wants to additionally stake.
 
     // ===== Stake Tx ===== //
     // Description: User sends DAO tokens to the stake box and receive a stake key in return, proving they have staked and used for unstaking.
     // Inputs: 
     //   Stake: StakeStateBox, StakeProxyBox
-    //   Add Stake: StakeStateBox, StakeBox, AddStakeProxyBox, StakingIncentiveBox
+    //   Add Stake: StakeStateBox, StakeBox, AddStakeProxyBox
     // DataInputs: None
     // Context Extension Variables: None
     // Outputs: 
-    //   Stake: NewStakeStateBox, NewStakeBox, UserWalletBox, NewStakingIncentiveBox, TxOperatorOutputBox
-    //   Add Stake: NewStakeStateBox, NewStakeBox, UserWalletBox, NewStakingIncentiveBox, TxOperatorOutputBox
+    //   Stake: NewStakeStateBox, NewStakeBox, UserWalletBox
+    //   Add Stake: NewStakeStateBox, NewStakeBox, UserWalletBox 
 
     // ===== Emit Tx ===== //
     // Description: Ran once per day, determining the amount from the stake pool to be withdrawn into a new emission box before being distributed to the stakers.
@@ -131,18 +116,18 @@
 
     // ===== Unstake Tx ===== //
     // Description: User wishes to remove their staked tokens from the staking protocol, using their stake key.
-    // Inputs: StakeStateBox, StakeBox, UnstakeProxyBox, StakingIncentiveBox
+    // Inputs: StakeStateBox, StakeBox, UnstakeProxyBox
     // DataInputs: None
     // Context Extension Variables: None
     // Outputs: 
-    //   Full Unstake: NewStakeStateBox, UserWalletBox, NewStakingIncentiveBox, TxOperatorOutputBox
-    //   Partial Unstake: NewStakeStateBox, UserWalletBox, NewStakeBox, NewStakingIncentiveBox, TxOperatorOutputBox
+    //   Full Unstake: NewStakeStateBox, UserWalletBox
+    //   Partial Unstake: NewStakeStateBox, UserWalletBox, NewStakeBox
 
     // ===== Hard-Coded Constants ===== //
     val BlockTime: Long           = CONTEXT.preHeader.timestamp  // Timestamp from blockchain preheader
     val StakedTokenID: Coll[Byte] = _stakedTokenID				 // Token identifier for the token distributed by the DAO
     val StakePoolNFT: Coll[Byte]  = _stakePoolNFT                // Identifier for the stake pool box
-    val EmissionNFT: Coll[Byte]   = _emissionNFT                 // Identifier for the emission box
+    val EmissionNFT: Coll[Byte]   = _emissionNFT                 // Identifier for the stake emission box
     val StakeContract: Coll[Byte] = _stakeContractHash           // Hash of the staking contract P2S address
     val MinimumStake: Long        = 1000L                        // Minimum amount of DAO tokens required for staking
 
@@ -457,7 +442,7 @@
             }
 
             // Conditions for a valid output emission box
-            val validEmissionInputBox: Boolean = {
+            val validNewEmissionBox: Boolean = {
 
                 allOf(Coll(
 
@@ -475,8 +460,8 @@
             }
 
             allOf(Coll(
-                validEmissionInputBox,
-                validNewStakeStateBox
+                validNewStakeStateBox,
+                validNewEmissionBox
             ))
 
 
