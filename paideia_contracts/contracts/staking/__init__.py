@@ -1247,8 +1247,42 @@ def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result.unstakeProxyContract = UnstakeProxyContract(result)
     return result
 
+def PaideiaTestnetConfig(appKit: ErgoAppKit) -> StakingConfig:
+    result = StakingConfig(
+        version = "latest",
+        appKit = appKit,
+        stakeStateNFT = "99272858f97ca9c1e6a313f1fb4c5e27912e0a7a5a76ceb065e52c3c11b6e647",
+        stakePoolNFT = "8557834f67bdc177ee9528d7d0faf33ef025666f1f45a70e7e57d32f327dcec4",
+        emissionNFT = "83759b1a3d080d043db81acd10e1a6cb5b6fff8815b32c0ccc3380a9691ad909",
+        stakeTokenId = "21038855e00a9e767ffbeb9bbc1f59c39555e9e11652dcb5a0f689b53d78b197",
+        stakedTokenId = "b64a4682c11a4f02a50ba8f7d6587daebb93e55199f33a108c987ffb2cbd16f3",
+        stakePoolKey = "14d5b543223eb8e67ea70c1884118122c77dfb0020140fc93cedded89186e582",
+        stakedTokenName = "PaideiaTestnet",
+        stakedTokenDecimals = 4,
+        proxyToStakingIncentive = int(1e8),
+        proxyAddToStakingIncentive = int(1e7),
+        proxyExecutorReward = int(2e6),
+        proxyMinerFee = int(2e6),
+        dustCollectionReward = int(5e5),
+        dustCollectionMinerFee = int(1e6),
+        emitReward = int(3e6),
+        emitMinerFee = int(1e6),
+        baseCompoundReward = int(5e5),
+        baseCompoundMinerFee = int(1e6),
+        variableCompoundReward = int(15e4),
+        variableCompoundMinerFee = int(1e5))
+    result.stakeContract = StakeContract(result)
+    result.stakeStateContract = StakeStateContract(result)
+    result.stakePoolContract = StakePoolContract(result)
+    result.emissionContract = EmissionContract(result)
+    result.stakingIncentiveContract = StakingIncentiveContract(result)
+    result.stakeProxyContract = StakeProxyContract(result)
+    result.addStakeProxyContract = AddStakeProxyContract(result)
+    result.unstakeProxyContract = UnstakeProxyContract(result)
+    return result
+
 def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, stakingStart: int, stakingCycleDuration: int, dailyEmission: int, stakePoolSize: int) -> StakingConfig:
-    res = requests.get(f"https://api.ergoplatform.com/api/v1/tokens/{tokenId}")
+    res = requests.get(f"{appKit._explorerUrl}/api/v1/tokens/{tokenId}")
     stakedTokenName = res.json()["name"]
     stakedTokenDecimals = res.json()["decimals"]
     print(stakedTokenName)
@@ -1363,27 +1397,28 @@ def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, staking
 
 
     config = StakingConfig(
-    appKit = appKit,
-    stakeStateNFT = stakeStateNFT,
-    stakePoolNFT = stakePoolNFT,
-    emissionNFT = emissionNFT,
-    stakeTokenId = stakeTokenId,
-    stakedTokenId = tokenId,
-    stakePoolKey = stakePoolKey,
-    stakedTokenName = stakedTokenName,
-    stakedTokenDecimals = stakedTokenDecimals,
-    proxyToStakingIncentive = int(1e8),
-    proxyAddToStakingIncentive = int(1e7),
-    proxyExecutorReward = int(2e6),
-    proxyMinerFee = int(2e6),
-    dustCollectionReward = int(5e5),
-    dustCollectionMinerFee = int(1e6),
-    emitReward = int(3e6),
-    emitMinerFee = int(1e6),
-    baseCompoundReward = int(5e5),
-    baseCompoundMinerFee = int(1e6),
-    variableCompoundReward = int(15e4),
-    variableCompoundMinerFee = int(1e5))
+        version = "latest",
+        appKit = appKit,
+        stakeStateNFT = stakeStateNFT,
+        stakePoolNFT = stakePoolNFT,
+        emissionNFT = emissionNFT,
+        stakeTokenId = stakeTokenId,
+        stakedTokenId = tokenId,
+        stakePoolKey = stakePoolKey,
+        stakedTokenName = stakedTokenName,
+        stakedTokenDecimals = stakedTokenDecimals,
+        proxyToStakingIncentive = int(1e8),
+        proxyAddToStakingIncentive = int(1e7),
+        proxyExecutorReward = int(2e6),
+        proxyMinerFee = int(2e6),
+        dustCollectionReward = int(5e5),
+        dustCollectionMinerFee = int(1e6),
+        emitReward = int(3e6),
+        emitMinerFee = int(1e6),
+        baseCompoundReward = int(5e5),
+        baseCompoundMinerFee = int(1e6),
+        variableCompoundReward = int(15e4),
+        variableCompoundMinerFee = int(1e5))
     config.stakeContract = StakeContract(config)
     config.stakeStateContract = StakeStateContract(config)
     config.stakePoolContract = StakePoolContract(config)
