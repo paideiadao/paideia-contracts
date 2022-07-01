@@ -1281,7 +1281,41 @@ def PaideiaTestnetConfig(appKit: ErgoAppKit) -> StakingConfig:
     result.unstakeProxyContract = UnstakeProxyContract(result)
     return result
 
-def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, stakingStart: int, stakingCycleDuration: int, dailyEmission: int, stakePoolSize: int) -> StakingConfig:
+def EGIOStakingV2TestConfig(appKit: ErgoAppKit) -> StakingConfig:
+    result = StakingConfig(
+        version = "1.1",
+        appKit = appKit,
+        stakeStateNFT = "f39cc56b49f41a96c2b350e3c5c9af7eba9ed1614a29c1c4a4ac50efcdf849e9",
+        stakePoolNFT = "dfd6561101821c5d6f25cb2c920571895800e89bcb0199b2fab83ebaccf461a7",
+        emissionNFT = "daa1458e2198ec6adf9f76ffcabbb4ac4943ad5b64d143141baea35903d5b91d",
+        stakeTokenId = "19a61778357062c0408acd1a3fbaac2bb324b8c17aabd2f8fbc2b27778bffe4f",
+        stakedTokenId = "97bc9591a5100181f8afc9f76c3b914c881af8bc0dc84b0120b659a31d6ee132",
+        stakePoolKey = "8f9762e68ac1965c60fa4d35014eff6c52e49b9f9277f7d78ad569d4ce07e82d",
+        stakedTokenName = "EGIOStakingV2Test",
+        stakedTokenDecimals = 4,
+        proxyToStakingIncentive = int(1e8),
+        proxyAddToStakingIncentive = int(1e7),
+        proxyExecutorReward = int(2e6),
+        proxyMinerFee = int(2e6),
+        dustCollectionReward = int(5e5),
+        dustCollectionMinerFee = int(1e6),
+        emitReward = int(3e6),
+        emitMinerFee = int(1e6),
+        baseCompoundReward = int(5e5),
+        baseCompoundMinerFee = int(1e6),
+        variableCompoundReward = int(15e4),
+        variableCompoundMinerFee = int(1e5))
+    result.stakeContract = StakeContract(result)
+    result.stakeStateContract = StakeStateContract(result)
+    result.stakePoolContract = StakePoolContract(result)
+    result.emissionContract = EmissionContract(result)
+    result.stakingIncentiveContract = StakingIncentiveContract(result)
+    result.stakeProxyContract = StakeProxyContract(result)
+    result.addStakeProxyContract = AddStakeProxyContract(result)
+    result.unstakeProxyContract = UnstakeProxyContract(result)
+    return result
+
+def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, stakingStart: int, stakingCycleDuration: int, dailyEmission: int, stakePoolSize: int, version: str = "latest") -> StakingConfig:
     res = requests.get(f"{appKit._explorerUrl}/api/v1/tokens/{tokenId}")
     stakedTokenName = res.json()["name"]
     stakedTokenDecimals = res.json()["decimals"]
@@ -1397,7 +1431,7 @@ def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, staking
 
 
     config = StakingConfig(
-        version = "latest",
+        version = version,
         appKit = appKit,
         stakeStateNFT = stakeStateNFT,
         stakePoolNFT = stakePoolNFT,
