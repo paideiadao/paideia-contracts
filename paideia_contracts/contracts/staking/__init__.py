@@ -898,17 +898,24 @@ class AddStakeTransaction(ErgoTransaction):
             stakeInput: InputBox,
             addStakeProxyInput: InputBox,
             stakingConfig,
-            address: str) -> None:
+            address: str,
+            validations: bool = True) -> None:
         super().__init__(stakingConfig.appKit)
-        if not stakingConfig.stakeStateContract.validateInputBox(stakeStateInput):
-            raise InvalidInputBoxException("Stake state input box does not match contract")
-        if not stakingConfig.stakeContract.validateInputBox(stakeInput):
-            raise InvalidInputBoxException("Stake input box does not match contract")
-        if not stakingConfig.addStakeProxyContract.validateInputBox(addStakeProxyInput):
-            raise InvalidInputBoxException("Add Stake Proxy input box does not match contract")
+        if validations:
+            if not stakingConfig.stakeStateContract.validateInputBox(stakeStateInput):
+                raise InvalidInputBoxException("Stake state input box does not match contract")
+            if not stakingConfig.stakeContract.validateInputBox(stakeInput):
+                raise InvalidInputBoxException("Stake input box does not match contract")
+            if not stakingConfig.addStakeProxyContract.validateInputBox(addStakeProxyInput):
+                raise InvalidInputBoxException("Add Stake Proxy input box does not match contract")
         stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
         addStakeProxyBox = AddStakeProxyBox.fromInputBox(addStakeProxyInput, stakeBox, stakingConfig.addStakeProxyContract)
         stakeStateBox = StakeStateBox.fromInputBox(stakeStateInput, stakingConfig.stakeStateContract)
+
+        if validations:
+            if stakeBox.checkpoint != stakeStateBox.checkpoint:
+                raise InvalidTransactionConditionsException("Stake box is awaiting a compound")
+
         stakeStateBox.amountStaked += addStakeProxyBox.amountToStake
 
         stakeBox.amountStaked += addStakeProxyBox.amountToStake
@@ -935,18 +942,25 @@ class UnstakeTransaction(ErgoTransaction):
             stakeInput: InputBox,
             unstakeProxyInput: InputBox,
             stakingConfig,
-            address: str) -> None:
+            address: str,
+            validations: bool = True) -> None:
         super().__init__(stakingConfig.appKit)
-        if not stakingConfig.stakeStateContract.validateInputBox(stakeStateInput):
-            raise InvalidInputBoxException("Stake state input box does not match contract")
-        if not stakingConfig.stakeContract.validateInputBox(stakeInput):
-            raise InvalidInputBoxException("Stake input box does not match contract")
-        if not stakingConfig.unstakeProxyContract.validateInputBox(unstakeProxyInput):
-            raise InvalidInputBoxException("Unstake proxy input box does not match contract")
+        if validations:
+            if not stakingConfig.stakeStateContract.validateInputBox(stakeStateInput):
+                raise InvalidInputBoxException("Stake state input box does not match contract")
+            if not stakingConfig.stakeContract.validateInputBox(stakeInput):
+                raise InvalidInputBoxException("Stake input box does not match contract")
+            if not stakingConfig.unstakeProxyContract.validateInputBox(unstakeProxyInput):
+                raise InvalidInputBoxException("Unstake proxy input box does not match contract")
 
         stakeBox = StakeBox.fromInputBox(stakeInput, stakingConfig.stakeContract)
         unstakeProxyBox = UnstakeProxyBox.fromInputBox(unstakeProxyInput, stakeBox, stakingConfig.unstakeProxyContract)
         stakeStateBox = StakeStateBox.fromInputBox(stakeStateInput, stakingConfig.stakeStateContract)
+
+        if validations:
+            if stakeBox.checkpoint != stakeStateBox.checkpoint:
+                raise InvalidTransactionConditionsException("Stake box is awaiting a compound")
+
         stakeStateBox.amountStaked -= unstakeProxyBox.amountToUnstake
         userTokens = {stakingConfig.stakedTokenId: unstakeProxyBox.amountToUnstake}
         if stakeBox.amountStaked <= unstakeProxyBox.amountToUnstake:

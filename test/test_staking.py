@@ -390,7 +390,8 @@ class TestStaking:
                     stakeInput=stakeInput,
                     addStakeProxyInput=addStakeProxyInput,
                     stakingConfig=self.config,
-                    address=self.txOperator
+                    address=self.txOperator,
+                    validations=False
                 ).unsignedTx
             self.appKit.signTransaction(unsignedTx)
 
@@ -426,7 +427,8 @@ class TestStaking:
                 stakeInput=stakeInput,
                 unstakeProxyInput=unstakeProxyInput,
                 stakingConfig=self.config,
-                address=self.txOperator
+                address=self.txOperator,
+                validations=False
             ).unsignedTx
 
             self.appKit.signTransaction(unsignedTx)
@@ -462,7 +464,8 @@ class TestStaking:
                 stakeInput=stakeInput,
                 unstakeProxyInput=unstakeProxyInput,
                 stakingConfig=self.config,
-                address=self.txOperator
+                address=self.txOperator,
+                validations=False
             ).unsignedTx
             self.appKit.signTransaction(unsignedTx)
 
