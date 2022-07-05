@@ -1295,17 +1295,17 @@ def PaideiaTestnetConfig(appKit: ErgoAppKit) -> StakingConfig:
     result.unstakeProxyContract = UnstakeProxyContract(result)
     return result
 
-def EGIOStakingV2TestConfig(appKit: ErgoAppKit) -> StakingConfig:
+def EGIOConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         version = "1.1",
         appKit = appKit,
-        stakeStateNFT = "f39cc56b49f41a96c2b350e3c5c9af7eba9ed1614a29c1c4a4ac50efcdf849e9",
-        stakePoolNFT = "dfd6561101821c5d6f25cb2c920571895800e89bcb0199b2fab83ebaccf461a7",
-        emissionNFT = "daa1458e2198ec6adf9f76ffcabbb4ac4943ad5b64d143141baea35903d5b91d",
-        stakeTokenId = "19a61778357062c0408acd1a3fbaac2bb324b8c17aabd2f8fbc2b27778bffe4f",
-        stakedTokenId = "97bc9591a5100181f8afc9f76c3b914c881af8bc0dc84b0120b659a31d6ee132",
-        stakePoolKey = "8f9762e68ac1965c60fa4d35014eff6c52e49b9f9277f7d78ad569d4ce07e82d",
-        stakedTokenName = "EGIOStakingV2Test",
+        stakeStateNFT = "097fd281c99588269d672e1b686bf6bcdce04102e183b2242f6634d93869fc0a",
+        stakePoolNFT = "dc22db903e5ac54da5d4b6f33dd13b2330b79a9ae473f9dd3ea0d796c1179443",
+        emissionNFT = "0e4202196f6030ab1986e39012dc95ea10f034b13d90a70c0b1f86d986106ff6",
+        stakeTokenId = "012d649686deeef606d253146bec0cf623f9b84574fbfa0fd0d1091393923613",
+        stakedTokenId = "00b1e236b60b95c2c6f8007a9d89bc460fc9e78f98b09faec9449007b40bccf3",
+        stakePoolKey = "436f8f48a3650c7be728e2a331e9a6e818c31f27163ee6e5257fcfd2d8423dc3",
+        stakedTokenName = "EGIO",
         stakedTokenDecimals = 4,
         proxyToStakingIncentive = int(1e8),
         proxyAddToStakingIncentive = int(1e7),

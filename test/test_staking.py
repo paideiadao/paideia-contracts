@@ -192,6 +192,53 @@ class TestStaking:
             traceback.print_exc()
         assert signed
 
+    def test_compound_small_0_reward(self):
+        emissionInput = EmissionBox(
+            appKit=self.appKit,
+            emissionContract=self.config.emissionContract,
+            emissionRemaining=271161000,
+            amountStaked=2711610000000,
+            checkpoint=126,
+            stakers=2,
+            emissionAmount=271161000
+        ).inputBox()
+        stakeBox1 = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=126,
+            stakeTime=0,
+            amountStaked=1000,
+            stakeKey=self.config.stakedTokenId #this value doesnt matter here
+        ).inputBox()
+        stakeBox2 = StakeBox(
+            appKit=self.appKit,
+            stakeContract=self.config.stakeContract,
+            checkpoint=126,
+            stakeTime=0,
+            amountStaked=2711609999000,
+            stakeKey=self.config.stakeTokenId #this value doesnt matter here
+        ).inputBox()
+        stakingIncentiveInput = StakingIncentiveBox(
+            appKit=self.appKit,
+            stakingIncentiveContract=self.config.stakingIncentiveContract,
+            value=int(4953000000)
+        ).inputBox()
+        signed = False
+        try:
+            unsignedTx = CompoundTransaction(
+                emissionInput=emissionInput,
+                stakeInputs=[stakeBox1,stakeBox2],
+                stakingIncentiveInput=stakingIncentiveInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            ).unsignedTx
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+            self.appKit.signTransaction(unsignedTx)
+            signed = True
+        except:
+            traceback.print_exc()
+        assert signed
+
     def test_stake(self):
         stakeStateInput = StakeStateBox(
             appKit=self.appKit,
