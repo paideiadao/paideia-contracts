@@ -1261,18 +1261,18 @@ def PaideiaTestConfig(appKit: ErgoAppKit) -> StakingConfig:
     result.unstakeProxyContract = UnstakeProxyContract(result)
     return result
 
-def PaideiaTestnetConfig(appKit: ErgoAppKit) -> StakingConfig:
+def ergopadv5testConfig(appKit: ErgoAppKit) -> StakingConfig:
     result = StakingConfig(
         version = "latest",
         appKit = appKit,
-        stakeStateNFT = "99272858f97ca9c1e6a313f1fb4c5e27912e0a7a5a76ceb065e52c3c11b6e647",
-        stakePoolNFT = "8557834f67bdc177ee9528d7d0faf33ef025666f1f45a70e7e57d32f327dcec4",
-        emissionNFT = "83759b1a3d080d043db81acd10e1a6cb5b6fff8815b32c0ccc3380a9691ad909",
-        stakeTokenId = "21038855e00a9e767ffbeb9bbc1f59c39555e9e11652dcb5a0f689b53d78b197",
-        stakedTokenId = "b64a4682c11a4f02a50ba8f7d6587daebb93e55199f33a108c987ffb2cbd16f3",
-        stakePoolKey = "14d5b543223eb8e67ea70c1884118122c77dfb0020140fc93cedded89186e582",
-        stakedTokenName = "PaideiaTestnet",
-        stakedTokenDecimals = 4,
+        stakeStateNFT = "25b3c12f6a7d8c4135cc16bcfb89478eaa50cc85ca41d1e9416591d6546d871e",
+        stakePoolNFT = "890fd0204defb9f0d996eb335e29f41cb6a98e5856d5a6581703f32c1c8718bd",
+        emissionNFT = "623b2027a6412853ff8a6f0b9d197ae8c95eb6fc90b170dc3bf06eea183b1bf2",
+        stakeTokenId = "b091e344d39ca15a5f9c1c108353f73d8668ce2dddd7438c8bae687b0c7dbbc4",
+        stakedTokenId = "839a4221d091dd95aa1d446c5f9d3962db579f666f9404916795e2770bcee9f4",
+        stakePoolKey = "2a2d629ddb747ae9de2ea30902729d106841f73e27da3a35765cbf8e615b2fc5",
+        stakedTokenName = "ergopadv5test",
+        stakedTokenDecimals = 6,
         proxyToStakingIncentive = int(1e8),
         proxyAddToStakingIncentive = int(1e7),
         proxyExecutorReward = int(2e6),
@@ -1355,6 +1355,7 @@ def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, staking
     stakeStateMintunsignedTx.fee=int(1e6)
     stakeStateMintunsignedTx.changeAddress=nodeAddress
     stakeStateMintTx = appKit.signTransactionWithNode(stakeStateMintunsignedTx.unsignedTx)
+
     appKit.sendTransaction(stakeStateMintTx)
 
     #Stake Pool NFT mint

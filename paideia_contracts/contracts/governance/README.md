@@ -33,7 +33,7 @@ EIP-6 specification for the Paideia governance protocol.
 | --- | --- | --- |
 | Paideia Origin | NFT | Identifier for Paideia Origin box |
 | Paideia DAO | Token | Verified Paideia DAO |
-| 
+| DAO Config | Token | Verified DAO Config token (Unique for each DAO) |
 
 ---
 
@@ -43,16 +43,17 @@ The contract holding the Paideia DAO tokens ensuring only DAO's created in the c
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Long] | 0 | Index of config box to use for fees |
+| R5 | Coll[Coll[Byte]] | 0 | Token Id of config box | 
 
-### Hard-Coded Constants
+### Assets
 
-- ...
-
-### Context Extension Variables
-
-1. ...
+| Token Name | Token Amount |
+| --- | --- |
+| Paideia Origin | 1 |
+| Paideia DAO | Inf |
 
 ### Mandatory Stage Spending Conditions
 
@@ -60,26 +61,26 @@ The contract holding the Paideia DAO tokens ensuring only DAO's created in the c
 
 ### Action Paths
 
-- [x Action](<#X-Action>)
+- [Create Proto DAO](#action-create-proto-dao)
   
 ---
 
-## Stage: Stake Proxy
+## Stage: DAO Config
 
-This stage does this.
+A DAO Config box acts as a data input for other contracts in the governance setup or DAO specific contracts. They can be updated through proposals. The first Long and Coll[Byte] registers are reserved for identifying the config box and the proposal token id. A special instance with index 0 will contain the main DAO settings that are to be set for each DAO and will be created in the DAO creation process. New config boxes can be created through proposals.
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Long] | 0 | Config box index |
+| R5 | Coll[Coll[Byte]] | 0 | DAO Proposal token | 
 
-### Hard-Coded Constants
+### Assets
 
-- ...
-
-### Context Extension Variables
-
-1. ...
+| Token Name | Token Amount |
+| --- | --- |
+| DAO Config | 1 |
 
 ### Mandatory Stage Spending Conditions
 
@@ -87,34 +88,31 @@ This stage does this.
 
 ### Action Paths
 
-- [x Action](<#X-Action>)
+- [Update Config](#action-update-config)
   
 ---
 
-## Stage: Stake State
+## Stage: Paideia Mint
 
-This stage does this.
+During DAO creation many tokens will be minted. This contract will hold minted tokens until they can be locked into the appropiate contracts. By using this contract in conjunction with the Proto DAO contract we ensure that the correct amounts are minted and all the tokens are locked in the contracts, preventing malicious users from keeping some tokens for themselves (and later on create malicious proposals/actions).
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
 
-### Hard-Coded Constants
+### Assets
 
-- ...
-
-### Context Extension Variables
-
-1. ...
+| Token Name | Token Amount |
+| --- | --- |
+| Minted token | X |
 
 ### Mandatory Stage Spending Conditions
 
 
-
 ### Action Paths
 
-- [x Action](<#X-Action>)
+- [Create DAO](#action-create-dao)
   
 ---
 
