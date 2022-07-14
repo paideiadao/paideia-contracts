@@ -76,14 +76,13 @@ The contract holding the Paideia DAO tokens ensuring only DAO's created in the c
 
 ## Contract: DAO Config
 
-A DAO Config box acts as a data input for other contracts in the governance setup or DAO specific contracts. They can be updated through proposals. The first Long and Coll[Byte] registers are reserved for identifying the config box and the proposal token id. A special instance with index 0 will contain the main DAO settings that are to be set for each DAO and will be created in the DAO creation process. New config boxes can be created through proposals.
+A DAO Config box acts as a data input for other contracts in the governance setup or DAO specific contracts. They can be updated through proposals. The first Long register is reserved for identifying the config box. A special instance with index 0 will contain the main DAO settings that are to be set for each DAO and will be created in the DAO creation process. New config boxes can be created through proposals.
 
 ### Registers
 
 | Register | Type | Index | Description |
 | --- | --- | --- | --- |
 | R4 | Coll[Long] | 0 | Config box index |
-| R5 | Coll[Coll[Byte]] | 0 | DAO Proposal token | 
 
 ### Assets
 
@@ -127,6 +126,16 @@ This is the contract the user sends funds to and defines in the registers the re
 
 | Register | Type | Index | Description |
 | --- | --- | --- | --- |
+| R4 | Coll[Coll[Byte]] | 0 | Dao Name |
+| | | 1 | Governance token id |
+| R5 | Coll[Long] | 0 | Min quorum |
+| | | 1 | Min proposal time |
+| | | 2 | Stake pool allocation |
+| | | 3 | Emission amount |
+| | | 4 | Emission time |
+| | | 5 | Emission Start |
+| R6 | Coll[Coll[Byte]] | 0-N | Hash of whitelisted proposal type |
+| R7 | Coll[Coll[Byte]] | 0-M | Hash of whitelisted action type |
 
 ### Assets
 
@@ -150,6 +159,25 @@ This contract ensures the DAO is created correctly including the minting of the 
 
 | Register | Type | Index | Description |
 | --- | --- | --- | --- |
+| R4 | Coll[Coll[Byte]] | 0 | Dao Name |
+| | | 1 | Governance token id |
+| | | 2 | DAO NFT |
+| | | 3 | Config |
+| | | 4 | Vote |
+| | | 5 | Proposal |
+| | | 6 | Action |
+| | | 7 | Stake state |
+| | | 8 | Stake pool |
+| | | 9 | Emission |
+| | | 10 | Stake |
+| R5 | Coll[Long] | 0 | Min quorum |
+| | | 1 | Min proposal time |
+| | | 2 | Stake pool allocation |
+| | | 3 | Emission amount |
+| | | 4 | Emission time |
+| | | 5 | Emission Start |
+| R6 | Coll[Coll[Byte]] | 0-N | Hash of whitelisted proposal type |
+| R7 | Coll[Coll[Byte]] | 0-M | Hash of whitelisted action type |
 
 ### Assets
 
