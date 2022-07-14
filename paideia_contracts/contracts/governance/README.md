@@ -1,31 +1,38 @@
 # Paideia Governance Protocol
 
-EIP-6 specification for the Paideia governance protocol.
+EIP-6 specification for the Paideia governance protocol. In this protocol we work with the concept of proposals and actions. These are generic terms, specific proposals and actions will be implemented over time and documented separately to keep this document maintainable. A DAO can use custom proposals and actions, but this is for advanced use only, as it can potentially pose a risk to the DAO.
 
-# Stages
+# Contracts
 
-1. [Paideia Origin](#stage-paideia-origin)
-2. [DAO Config](#stage-dao-config)
-3. [Paideia Mint](#stage-paideia-mint)
-4. [Proto DAO Proxy](#stage-proto-dao-proxy)
-5. [Proto DAO](#stage-proto-dao)
-6. [DAO](#stage-dao)
-7. [DAO Vote Proxy](#stage-dao-vote-proxy)
-8. [DAO Vote](#stage-dao-vote)
-9. [DAO Cast Vote Proxy](#stage-dao-cast-vote-proxy)
-10. [DAO Proposal Proxy](#stage-dao-proposal-proxy)
-11. [DAO Proposal](#stage-dao-proposal)
-12. [DAO Action](#stage-dao-action)
-13. [DAO Treasury](#stage-dao-treasury)
+1. [Paideia Origin](#contract-paideia-origin)
+2. [DAO Config](#contract-dao-config)
+3. [Paideia Mint](#contract-paideia-mint)
+4. [Proto DAO Proxy](#contract-proto-dao-proxy)
+5. [Proto DAO](#contract-proto-dao)
+6. [DAO](#contract-dao)
+7. [Vote Proxy](#contract-vote-proxy)
+8. [Vote](#contract-vote)
+9. [Cast Vote Proxy](#contract-cast-vote-proxy)
+10. [Proposal Proxy](#stcontractage-proposal-proxy)
+11. [Proposal](#contract-proposal)
+12. [Action Proxy](#contract-action-proxy)
+13. [Action](#contract-action)
+14. [Treasury](#contract-treasury)
 
-# Actions
+# Transactions
 
-1. [Create Proto DAO](#action-create-proto-dao)
-2. [Mint Token](#action-mint-token)
-3. [Create DAO](#action-create-dao)
-4. [Create DAO Vote Box](#action-create-dao-vote-box)
-5. [Create DAO Proposal](#action-dao-proposal)
-6. [Cast Vote](#action-cast-vote)
+1. [Create Proto DAO Proxy](#transaction-create-proto-dao-proxy)
+1. [Create Proto DAO](#transaction-create-proto-dao)
+2. [Mint Token](#transaction-mint-token)
+3. [Create DAO](#transaction-create-dao)
+4. [Create Vote Proxy](#transaction-create-vote-proxy)
+4. [Create Vote](#transaction-create-vote)
+4. [Create Proposal Proxy](#transaction-create-proposal-proxy)
+5. [Create Proposal](#transaction-proposal)
+6. [Cast Vote Proxy](#transaction-cast-vote-proxy)
+6. [Cast Vote](#transaction-cast-vote)
+7. [Evaluate Proposal](#transaction-evaluate-proposal)
+7. [Perform Action](#transaction-perform-action)
 
 # Tokens/NFTs
 
@@ -33,11 +40,17 @@ EIP-6 specification for the Paideia governance protocol.
 | --- | --- | --- |
 | Paideia Origin | NFT | Identifier for Paideia Origin box |
 | Paideia DAO | Token | Verified Paideia DAO |
-| DAO Config | Token | Verified DAO Config token (Unique for each DAO) |
+| Config* | Token | Verified Config token |
+| DAO NFT* | NFT | Unique identifier for DAO box |
+| Proposal* | Token | Verified Proposal token |
+| Vote* | Token | Verified Vote token |
+| Action* | Token | Verified Action token |
+
+*: Unique for each DAO
 
 ---
 
-## Stage: Paideia Origin
+## Contract: Paideia Origin
 
 The contract holding the Paideia DAO tokens ensuring only DAO's created in the correct way will hold a Paideia DAO token.
 
@@ -55,17 +68,13 @@ The contract holding the Paideia DAO tokens ensuring only DAO's created in the c
 | Paideia Origin | 1 |
 | Paideia DAO | Inf |
 
-### Mandatory Stage Spending Conditions
+### Transaction
 
-
-
-### Action Paths
-
-- [Create Proto DAO](#action-create-proto-dao)
+- [Create Proto DAO](#transaction-create-proto-dao)
   
 ---
 
-## Stage: DAO Config
+## Contract: DAO Config
 
 A DAO Config box acts as a data input for other contracts in the governance setup or DAO specific contracts. They can be updated through proposals. The first Long and Coll[Byte] registers are reserved for identifying the config box and the proposal token id. A special instance with index 0 will contain the main DAO settings that are to be set for each DAO and will be created in the DAO creation process. New config boxes can be created through proposals.
 
@@ -80,19 +89,15 @@ A DAO Config box acts as a data input for other contracts in the governance setu
 
 | Token Name | Token Amount |
 | --- | --- |
-| DAO Config | 1 |
+| Config | 1 |
 
-### Mandatory Stage Spending Conditions
+### Transactions
 
-
-
-### Action Paths
-
-- [Update Config](#action-update-config)
+- [Perform Action](#transaction-perform-action)
   
 ---
 
-## Stage: Paideia Mint
+## Contract: Paideia Mint
 
 During DAO creation many tokens will be minted. This contract will hold minted tokens until they can be locked into the appropiate contracts. By using this contract in conjunction with the Proto DAO contract we ensure that the correct amounts are minted and all the tokens are locked in the contracts, preventing malicious users from keeping some tokens for themselves (and later on create malicious proposals/actions).
 
@@ -107,372 +112,512 @@ During DAO creation many tokens will be minted. This contract will hold minted t
 | --- | --- |
 | Minted token | X |
 
-### Mandatory Stage Spending Conditions
 
+### Transactions
 
-### Action Paths
-
-- [Create DAO](#action-create-dao)
+- [Create DAO](#transaction-create-dao)
   
 ---
 
-## Stage: Stake Pool
+## Contract: Proto DAO Proxy
 
-This stage does this.
+This is the contract the user sends funds to and defines in the registers the relevant parameters for DAO creation. If the parameters are valid and the fee sufficient the DAO creation process will be initiated by creating a Proto DAO box.
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
 
-### Hard-Coded Constants
+### Assets
 
-- ...
-
-### Context Extension Variables
-
-1. ...
-
-### Mandatory Stage Spending Conditions
+| Token Name | Token Amount |
+| --- | --- |
+| Paideia | Fee amount |
 
 
+### Transactions
 
-### Action Paths
-
-- [x Action](<#X-Action>)
+- [Create Proto DAO Proxy](#transaction-create-proto-dao-proxy)
+- [Create Proto DAO](#transaction-create-proto-dao)
   
 ---
 
-## Stage: Staking
+## Contract: Proto DAO
 
-This stage does this.
+This contract ensures the DAO is created correctly including the minting of the tokens/nft's.
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
 
-### Hard-Coded Constants
+### Assets
 
-- ...
+| Token Name | Token Amount |
+| --- | --- |
+| Paideia DAO | 1 |
 
-### Context Extension Variables
+### Transactions
 
-1. ...
-
-### Mandatory Stage Spending Conditions
-
-
-
-### Action Paths
-
-- [x Action](<#X-Action>)
+- [Create DAO](#transaction-create-dao)
+- [Mint Token](#transaction-mint-token)
   
 ---
+  
+## Contract: DAO
 
-## Stage: Emission
-
-In this stage, the user has staked their DAO tokens. The next emission snapshot begins, where emission tokens are taken from the stake pool and ready to be distributed to stake holders.
+This contract lies at the center of a DAO. Each DAO will have one DAO box to ensure verification of proposals and vote boxes etc. It keeps track of indexes for config, proposal and action boxes.
 
 ### Registers
 
-- R4: Coll[Long]
-  - 0: Total amount staked
-  - 1: Checkpoint
-  - 2: Stakers
-  - 3: Emission amount
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Long] | 0 | Config index |
+| | | 1 | Proposal index |
+| | | 2 | Action index |
 
-- Tokens:
-  - 0:
-    - Emission NFT: Indentifier for the emission box.
-    - Amount: 1
-  - 1:
-    - DAO Token ID: Tokens to be emitted by the DAO.
-    - Amount: <= DAO token emission amount.
+### Assets
 
-### Hard-Coded Constants
+| Token Name | Token Amount |
+| --- | --- |
+| Paideia DAO | 1 |
+| DAO NFT | 1 |
+| Config | Inf |
+| Proposal | Inf |
+| Vote | Inf |
+| Action | Inf |
 
-- Stake State NFT: NFT identifying the stake state box.
-- Stake Token ID: Token proving that the stake box was created properly.
-- Staked Token ID: Token identifier for the token distributed by the DAO.
+### Transactions
+- [Create Proposal](#transaction-create-proposal)
+- [Create Vote](#transaction-create-vote)
+- [Perform Action](#transaction-perform-action)
 
-### Context Extension Variables
-
-None
-
-### Mandatory Stage Spending Conditions
-
-None
-
-### Action Paths
-
-- [Emit](#action-emit)
-- [Compound](#action-compound)
-  
 ---
 
-## Stage: Unstake Proxy
+## Contract: Vote Proxy
 
-This stage does this.
+A DAO member that wants to participate in either creating a proposal or voting on a proposal needs to have a vote box. A vote box depends on a stake box and as such requires the stake key from the member.
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Coll[Byte]] | 0 | User ergotree |
+| | | 1 | DAO NFT |
 
-### Hard-Coded Constants
+### Assets
 
-- ...
+| Token Name | Token Amount |
+| --- | --- |
+| Stake key | 1 |
 
-### Context Extension Variables
-
-1. ...
-
-### Mandatory Stage Spending Conditions
-
-
-
-### Action Paths
-
-- [x Action](<#X-Action>)
+### Transactions
+- [Create Vote](#transaction-create-vote)
   
 ---
 
-## Stage: Add Stake Proxy
+## Contract: Vote
 
-This stage does this.
+A vote box is used to record the votes cast by the user and locks the stake key to prevent double voting.
 
 ### Registers
 
-- R4: ...
-- R4: ...
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Coll[Byte]] | 0 | Vote key |
+| R5 | Coll[(Int,(Byte,Long))] | x | A vote registration with the following structure: (Proposal Index,(Vote option index, Vote amount)) |
+| R6 | Coll[Long] | 0 | Unlock time |
 
-### Hard-Coded Constants
+### Assets
 
-- ...
+| Token Name | Token Amount |
+| --- | --- |
+| Vote | 1 |
+| Stake key | 1 |
 
-### Context Extension Variables
-
-1. ...
-
-### Mandatory Stage Spending Conditions
-
-
-
-### Action Paths
-
-- [x Action](<#X-Action>)
+### Transactions
+- [Cast Vote](#transaction-cast-vote)
   
 ---
 
-## Action: Bootstrap Stake Pool
+## Contract: Cast Vote Proxy
 
-This action does this.
+To cast a vote a user sends his vote key to a cast vote proxy along with the desired vote.
+
+### Registers
+
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Coll[Byte]] | 0 | User ergotree |
+| R5 | Coll[(Int,(Byte,Long))] | 0 | A vote registration with the following structure: (Proposal Index,(Vote option index, Vote amount)) |
+
+### Assets
+
+| Token Name | Token Amount |
+| --- | --- |
+| Vote key | 1 |
+
+### Transactions
+- [Cast Vote](#transaction-cast-vote)
+
+---
+
+## Contract: Proposal Proxy
+
+A proposal can be created by a user by creating a Proposal Proxy box, including the required assets and parameters in the registers. Each proposal type will have it's own proxy to ensure validation. DAO's can vote on including more/new proposal types.
+
+### Registers
+
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4-R9 | Any | - | Depends on proposal type |
+
+### Assets
+
+| Token Name | Token Amount |
+| --- | --- |
+
+### Transactions
+- [Create Proposal Proxy](#transaction-create-proposal-proxy)
+- [Create Proposal](#transaction-create-proposal)
+
+---
+
+## Contract: Proposal
+
+A proposal can be created by a user by creating a Proposal Proxy box, including the required assets and parameters in the registers. Each proposal type will have it's own proxy to ensure validation. DAO's can vote on including more/new proposal types.
+
+### Registers
+
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Long] | 0 | Proposal index |
+| R5-R9 | Any | - | Depends on proposal type |
+
+### Assets
+
+| Token Name | Token Amount |
+| --- | --- |
+| Proposal | 1 |
+
+### Transactions
+- [Cast Vote](#transaction-cast-vote)
+- [Perform Action](#transaction-perform-action)
+
+---
+
+## Contract: Action Proxy
+
+An action can be created by a user by creating an Action Proxy box, including the required assets and parameters in the registers. Each action type will have it's own proxy to ensure validation. DAO's can vote on including more/new action types.
+
+### Registers
+
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4-R9 | Any | - | Depends on action type |
+
+### Assets
+
+| Token Name | Token Amount |
+| --- | --- |
+
+### Transactions
+- [Create Proposal Proxy](#transaction-create-proposal-proxy)
+- [Create Proposal](#transaction-create-proposal)
+  
+---
+
+## Contract: Action
+
+An action defines some kind of activity which is linked to a passed proposal.
+
+### Registers
+
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+| R4 | Coll[Long] | 0 | Action index |
+| | | 1 | Proposal index |
+| R5-R9 | Any | - | Depends on action type |
+
+### Assets
+
+| Token Name | Token Amount |
+| --- | --- |
+| Action | 1 |
+
+
+### Transactions
+- [Perform Action](#transaction-perform-action)
+
+---
+
+## Contract: Treasury
+
+The treasury holds the assets belonging to the DAO, these can only be spent through actions/passed proposals.
+
+### Registers
+
+| Register | Type | Index | Description |
+| --- | --- | --- | --- |
+
+### Assets
+
+| Token Name | Token Amount |
+| --- | --- |
+
+### Transactions
+- [Perform Action](#transaction-perform-action)
+
+---
+
+## Transaction: Create Proto DAO Proxy
+
+This is a user intiated transaction to initiate the "create DAO" process. 
 
 ### Inputs
 
-1. Input box does this.
+1. User inputs with the needed fee.
 
 ### Outputs
 
-1. A box that does this.
+1. [Create DAO Proxy](#contract-proto-dao-proxy)
 
 ---
 
-## Action: Stake
+## Transaction: Create Proto DAO
 
-This actions does this.
+Creation of the proto DAO box.
 
-### Data-Inputs
+#### Data-Inputs
 
-#### Data-Input 1
-
-...
-
-#### Data-Input 2
-
-...
-
+1. [Paideia Fee Config](#contract-dao-config)
 
 ### Inputs
 
-#### Input 1
-...
-
-#### Input 2
-...
+1. [Paideia Origin](#contract-paideia-origin)
+2. [Proto DAO Proxy](#contract-proto-dao-proxy)
 
 ### Outputs
 
-#### Output 1
-...
+1. [Paideia Origin](#contract-paideia-origin)
+2. [Proto DAO](#contract-proto-dao)
+3. [Paideia Treasury](#contract-treasury)
 
-#### Output 2
-...
+### Transaction Conditions
 
-### Action Conditions
+1. Data input is correct
+2. Fee is correct
+3. Proto dao contract is correct with registers filled correctly
 
-#### Condition 1
-...
+---
 
-#### Condition 2
-...
+## Transaction: Mint Token
+
+Mints a token during the DAO creation process.
+
+### Inputs
+
+1. [Proto DAO](#contract-proto-dao)
+
+### Outputs
+
+1. [Proto DAO](#contract-proto-dao)
+2. [Paideia Mint](#contract-paideia-mint)
+
+### Transaction Conditions
+
+1. Minted token has correct amount
+2. Minted token stored in proto dao register
    
 ---
 
-## Action: Emit
+## Transaction: Create DAO
 
-The emit transaction starts the next staking cycle. The checkpoint of the stake state box increases. Emission tokens are taken from the stake pool and added to the new emission box that will distribute those rewards. The emission box takes a snapshot of the amount of stake boxes. A new staking cycle cannot start until the amount of stakers value stored in the emission box drops to 0. Thus, all stake boxes must go through the compound transaction before the new staking cycle.
-
-### Data-Inputs
-
-None
+Once all tokens are minted, the DAO can be created.
 
 ### Inputs
 
-#### Input 1
-...
-
-#### Input 2
-...
+1. [Proto DAO](#contract-proto-dao)
+2. [Paideia Mint](#contract-paideia-mint)
 
 ### Outputs
 
-#### Output 1
-...
+1. [DAO](#contract-dao)
+2. [DAO Config](#contract-dao-config)
+3. Stake State
+4. Stake Pool
+5. Emission
 
-#### Output 2
-...
+### Transaction Conditions
 
-### Action Conditions
-
-#### Condition 1
-...
-
-#### Condition 2
-...
+1. Token id's match the corresponding tokens in the different boxes and registers
    
 ---
 
-## Action: Compound
+## Transaction: Create Vote Proxy
 
-This actions does this.
-
-### Data-Inputs
-
-#### Data-Input 1
-
-...
-
-#### Data-Input 2
-
-...
-
+A user initiated transaction to create a vote box for the user.
 
 ### Inputs
 
-#### Input 1
-...
-
-#### Input 2
-...
+1. Userinput with stake key
 
 ### Outputs
 
-#### Output 1
-...
-
-#### Output 2
-...
-
-### Action Conditions
-
-#### Condition 1
-...
-
-#### Condition 2
-...
+1. [Vote Proxy](#contract-vote-proxy)
    
 ---
 
-## Action: Unstake
+## Transaction: Create Vote
 
-This actions does this.
+The vote box is created and the user gets his vote key.
 
 ### Data-Inputs
 
-#### Data-Input 1
-
-...
-
-#### Data-Input 2
-
-...
-
+1. Stake
+2. [DAO Config](#contract-dao-config)
 
 ### Inputs
 
-#### Input 1
-...
-
-#### Input 2
-...
+1. [DAO](#contract-dao)
+2. [Vote Proxy](#contract-vote-proxy)
 
 ### Outputs
 
-#### Output 1
-...
+1. [DAO](#contract-dao)
+2. [Vote](#contract-vote)
+3. User box with vote key
 
-#### Output 2
-...
+### Transaction Conditions
 
-### Action Conditions
-
-#### Condition 1
-...
-
-#### Condition 2
-...
+1. DAO Config is correct
+2. Stake data input is verified stake box according to dao config
+3. Stake key corresponds to stake box
    
 ---
 
-## Action: Add Stake
+## Transaction: Create Proposal Proxy
 
-This actions does this.
-
-### Data-Inputs
-
-#### Data-Input 1
-
-...
-
-#### Data-Input 2
-
-...
-
+A user initiated transaction to create a proposal and it's associated actions. The output should be 1 proposal proxy and 0 or more action proxy's.
 
 ### Inputs
 
-#### Input 1
-...
-
-#### Input 2
-...
+1. Userinput with vote key and fee
 
 ### Outputs
 
-#### Output 1
-...
+1. [Proposal Proxy](#contract-proposal-proxy)
+2. [Action Proxy](#contract-action-proxy)
+   
+---
 
-#### Output 2
-...
+## Transaction: Create Proposal
 
-### Action Conditions
+A proposal is created along with the actions related to it.
 
-#### Condition 1
-...
+### Data-Inputs
 
-#### Condition 2
-...
+1. [DAO Config](#contract-dao-config)
+
+### Inputs
+
+1. [DAO](#contract-dao)
+2. [Proposal Proxy](#contract-proposal-proxy)
+3. [Action Proxy](#contract-action-proxy)
+
+### Outputs
+
+1. [DAO](#contract-dao)
+2. [Proposal](#contract-proposal)
+3. [Action](#contract-action)
+4. User output with vote key
+   
+---
+
+## Transaction: Cast Vote Proxy
+
+A user initiated transaction to initiate a vote on a proposal
+
+### Inputs
+
+1. Userinput with vote key
+
+### Outputs
+
+1. [Cast Vote Proxy](#contract-cast-vote-proxy)
+   
+---
+
+## Transaction: Cast Vote
+
+A vote is cast on a proposal
+
+### Data-Inputs
+
+1. Stake
+
+### Inputs
+
+1. [Proposal](#contract-proposal)
+2. [Vote](#contract-vote)
+2. [Cast Vote Proxy](#contract-cast-vote-proxy)
+
+### Outputs
+
+1. [Proposal](#contract-proposal)
+2. [Vote](#contract-vote)
+2. User output with vote key
+
+### Transaction Conditions
+
+1. Vote power does not exceed stake amount
+2. Proposal correctly updated
+3. Vote correctly updated
+   
+---
+
+## Transaction: Evaluate Proposal
+
+Evaluate a proposal to finalize it's state, allowing actions to be taken accordingly.
+
+### Data-Inputs
+
+1. Stake State
+
+### Inputs
+
+1. [Proposal](#contract-proposal)
+
+### Outputs
+
+1. [Proposal](#contract-proposal)
+
+### Transaction Conditions
+
+1. Enough time has passed
+2. Enough votes cast to pass quorum % (100% quorum is total amount staked)
+   
+---
+
+## Transaction: Perform Action
+
+Evaluate a proposal to finalize it's state, allowing actions to be taken accordingly.
+
+### Data-Inputs
+
+1. [Proposal](#contract-proposal)
+
+### Inputs
+
+1. [Action](#contract-action)
+2. Depends on action type
+
+### Outputs
+
+1. Depends on action type
+
+### Transaction Conditions
+
+1. Proposal passed and matches the action
    
 ---
