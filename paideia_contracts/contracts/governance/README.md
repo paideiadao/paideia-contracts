@@ -319,8 +319,14 @@ A proposal can be created by a user by creating a Proposal Proxy box, including 
 
 | Register | Type | Index | Description |
 | --- | --- | --- | --- |
-| R4 | Coll[Long] | 0 | Proposal index |
-| R5-R9 | Any | - | Depends on proposal type |
+| R4 | Coll[Long] | 0 | Proposal index - A unique index for this proposal assigned by the DAO |
+| | | 1 | Minimum quorum needed to pass the proposal (in %) |
+| | | 2 | End timestamp (in ms) at which points voting is no longer possible and the proposal can be evaluated |
+| | | 3 | Evaluated (0 or 1) |
+| R5 | Coll[Coll[Byte]] | 0 | Proposal title |
+| | | 1 | Proposal description |
+| | | 2-N+2 | Option description | 
+| R6 | Coll[(Long,Boolean)] | 0-N | (Vote tally, passed) |
 
 ### Assets
 
