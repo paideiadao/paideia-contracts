@@ -2,6 +2,15 @@
 
 EIP-6 specification for the Paideia governance protocol. In this protocol we work with the concept of proposals and actions. These are generic terms, specific proposals and actions will be implemented over time and documented separately to keep this document maintainable. A DAO can use custom proposals and actions, but this is for advanced use only, as it can potentially pose a risk to the DAO.
 
+## References
+
+This document describes the main Paideia governance protocol. It is kept generic to allow for extension in the future. Follow the links below to read up on specific descriptions:
+
+- [Paideia Data Types](DataTypes.md)
+- [Special Config Boxes](SpecialConfigs.md)
+- [Proposal types](proposals/README.md)
+- [Action types](actions/README.md)
+
 # Contracts
 
 1. [Paideia Origin](#contract-paideia-origin)

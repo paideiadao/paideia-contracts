@@ -36,3 +36,5 @@ Of course the first token needs to be a valid Proposal token
 | | | 1 | Proposal description |
 | | | 2-N+2 | Option description | 
 | R6 | Coll[(Long,Boolean)] | 0-N | (Vote tally, passed) |
+
+[Back to Paideia Goverance Protocol](../README.md)

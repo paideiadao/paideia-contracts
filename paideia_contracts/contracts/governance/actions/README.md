@@ -32,3 +32,5 @@ Of course the first token needs to be a valid Action token
 | --- | --- | --- | --- |
 | R4 | Coll[Long] | 0 | Proposal index - the proposal this action relates to |
 | | | 1 | Option index - the option of the proposal which needs to pass for this action to execute |
+
+[Back to Paideia Goverance Protocol](../README.md)

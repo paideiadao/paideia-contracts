@@ -4,7 +4,7 @@ The simple proposal type only has two options, yes or no. A minimum quorum % can
 
 ---
 
-## Contract: Simple Proposal Proxy
+## Contract: Proposal Simple Proxy
 
 The proxy confirms the resulting Simple Proposal contains the correct values in the registers and that any actions only relate to the Yes option.
 
@@ -30,7 +30,7 @@ The proxy confirms the resulting Simple Proposal contains the correct values in 
 
 ---
 
-## Contract: Simple Proposal
+## Contract: Proposal Simple
 
 The simple proposal contract
 
@@ -71,7 +71,7 @@ A user initiated transaction to create a simple proposal and it's associated act
 ### Outputs
 
 1. [Simple Proposal Proxy](#contract-simple-proposal-proxy)
-2. [Action Proxy](#contract-action-proxy)
+2. [Action Proxy](../../actions/README.md)
    
 ---
 
@@ -87,13 +87,13 @@ A proposal is created along with the actions related to it.
 
 1. [DAO](#contract-dao)
 2. [Proposal Proxy](#contract-simple-proposal-proxy)
-3. [Action Proxy](#contract-action-proxy)
+3. [Action Proxy](../../actions/README.md)
 
 ### Outputs
 
 1. [DAO](#contract-dao)
 2. [Simple Proposal](#contract-simple-proposal)
-3. [Action](#contract-action)
+3. [Action](../../actions/README.md)
 4. User output with vote key
    
 ---
