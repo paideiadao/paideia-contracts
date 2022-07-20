@@ -12,6 +12,8 @@ Each DAO will have special config boxes that always have the same format and hol
 | | | 1 | Stake State NFT |
 | | | 2 | Stake Pool NFT |
 | | | 3 | Emission NFT |
+| | | 4 | Config contract hash |
+| | | 5 | Treasury contract hash |
 
 ## DAO Whitelisted Proposal Types
 
