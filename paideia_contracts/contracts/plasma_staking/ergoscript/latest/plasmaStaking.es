@@ -1,7 +1,7 @@
 {
   val stakeState = SELF.R4[AvlTree].get
   val emissionAmount = SELF.R5[Coll[Long]].get(0)
-  val emissionDelay = SELF.R5[Coll[Long]].get(1)
+  val emissionDelay = SELF.R5[Coll[Long]].get(1).toInt
   val cycleLength = SELF.R5[Coll[Long]].get(2)
   val nextSnapshot = SELF.R5[Coll[Long]].get(3)
   val stakers = SELF.R5[Coll[Long]].get(4)
@@ -20,37 +20,37 @@
 
   val validTransactionType = transactionType >= 0 && transactionType <= 5
 
-  val validOutput = allOf(
+  val validOutput = allOf(Coll(
     plasmaStakingOutput.propositionBytes == SELF.propositionBytes,
     plasmaStakingOutput.tokens(0) == SELF.tokens(0),
     plasmaStakingOutput.tokens(1)._1 == SELF.tokens(1)._1
-  )
+  ))
 
   val validStake = {
     if (transactionType == STAKE) {
-      val stakeOperations  = getVar[Coll[(Coll[Byte], Coll[Byte]])](1).get
+      val stakeOperations  = getVar[Coll[(Coll[Byte], Coll[Byte])]](1).get
       val proof   = getVar[Coll[Byte]](2).get
 
       val userOutput = OUTPUTS(1)
 
       val stakeAmount = byteArrayToLong(stakeOperations(0)._2.slice(0,8))
 
-      val correctKeyMinted = SELF.id == stakeOperations(0)._1 == userOutput.tokens(0)._1
+      val correctKeyMinted = SELF.id == stakeOperations(0)._1 && SELF.id == userOutput.tokens(0)._1
       val correctAmountMinted = userOutput.tokens(0)._2 == 1
 
-      val tokensStaked = (plasmaStakingOutput.tokens(1)._2 - SELF.tokens(1)._2) == stakeAmount == plasmaStakingOutput.R5[Coll[Long]].get(5) - totalStaked
+      val tokensStaked = stakeAmount == (plasmaStakingOutput.tokens(1)._2 - SELF.tokens(1)._2) && stakeAmount == plasmaStakingOutput.R5[Coll[Long]].get(5) - totalStaked
 
       val singleStakeOp = stakeOperations.size == 1
 
-      val correctNewState = stakeState.insert(stakeOperations, proof).digest == plasmaStakingOutput.R4[AvlTree].get.digest
+      val correctNewState = stakeState.insert(stakeOperations, proof).get.digest == plasmaStakingOutput.R4[AvlTree].get.digest
       
-      allOf(
+      allOf(Coll(
         correctKeyMinted,
         correctAmountMinted,
         tokensStaked,
         singleStakeOp,
         correctNewState
-      )
+      ))
     } else {
       true
     }
@@ -58,7 +58,7 @@
 
   val validChangeStake = {
     if (transactionType == CHANGE_STAKE) {
-      val stakeOperations  = getVar[Coll[(Coll[Byte], Coll[Byte]])](1).get
+      val stakeOperations  = getVar[Coll[(Coll[Byte], Coll[Byte])]](1).get
       val proof   = getVar[Coll[Byte]](2).get
 
       val userOutput = OUTPUTS(1)
@@ -67,22 +67,22 @@
 
       val newStakeAmount = byteArrayToLong(stakeOperations(0)._2.slice(0,8))
 
-      currentStakeState = stakeState.get(stakeOperations(0)._1, proof)
+      val currentStakeState = stakeState.get(stakeOperations(0)._1, proof).get
 
-      val currentStakeAmount = byteArrayToLong(currentStakeState._2.slice(0,8))
+      val currentStakeAmount = byteArrayToLong(currentStakeState.slice(0,8))
 
-      val tokensStaked = (plasmaStakingOutput.tokens(1)._2 - SELF.tokens(1)._2) == newStakeAmount - currentStakeAmount == plasmaStakingOutput.R5[Coll[Long]].get(5) - totalStaked
+      val tokensStaked = newStakeAmount - currentStakeAmount == (plasmaStakingOutput.tokens(1)._2 - SELF.tokens(1)._2) && newStakeAmount - currentStakeAmount == plasmaStakingOutput.R5[Coll[Long]].get(5) - totalStaked
 
       val singleStakeOp = stakeOperations.size == 1
 
-      val correctNewState = stakeState.update(stakeOperations, proof).digest == plasmaStakingOutput.R4[AvlTree].get.digest
+      val correctNewState = stakeState.update(stakeOperations, proof).get.digest == plasmaStakingOutput.R4[AvlTree].get.digest
       
-      allOf(
+      allOf(Coll(
         keyInOutput,
         tokensStaked,
         singleStakeOp,
         correctNewState
-      )
+      ))
     } else {
       true
     }
@@ -97,22 +97,22 @@
 
       val keyInInput = userInput.tokens(0)._1 == keys(0)
 
-      currentStakeState = stakeState.get(keys(0), proof)
+      val currentStakeState = stakeState.get(keys(0), proof).get
 
-      val currentStakeAmount = byteArrayToLong(currentStakeState._2.slice(0,8))
+      val currentStakeAmount = byteArrayToLong(currentStakeState.slice(0,8))
 
-      val tokensUnstaked = (SELF.tokens(1)._2 - plasmaStakingOutput.tokens(1)._2) == currentStakeAmount == totalStaked - plasmaStakingOutput.R5[Coll[Long]].get(5)
+      val tokensUnstaked = currentStakeAmount == (SELF.tokens(1)._2 - plasmaStakingOutput.tokens(1)._2) && currentStakeAmount == totalStaked - plasmaStakingOutput.R5[Coll[Long]].get(5)
 
       val singleStakeOp = keys.size == 1
 
-      val correctNewState = stakeState.remove(keys, proof).digest == plasmaStakingOutput.R4[AvlTree].get.digest
+      val correctNewState = stakeState.remove(keys, proof).get.digest == plasmaStakingOutput.R4[AvlTree].get.digest
       
-      allOf(
+      allOf(Coll(
         keyInInput,
-        tokensStaked,
+        tokensUnstaked,
         singleStakeOp,
         correctNewState
-      )
+      ))
     } else {
       true
     }
@@ -123,24 +123,34 @@
       val correctSnapshotUpdate = {
         val newSnapshots = plasmaStakingOutput.R6[Coll[(Long,(Long,AvlTree))]].get
 
-        val correctNewSnapshot = allOf(
+        val correctNewSnapshot = allOf(Coll(
           newSnapshots(0)._1 == stakers,
           newSnapshots(0)._2._1 == totalStaked,
           newSnapshots(0)._2._2 == stakeState
-        )
+        ))
         
         val correctHistoryShift = if (snapshots.size > 0) 
           {
             allOf(Coll(
-              if (snapshots.size >= emissionDelay) snapshots(emissionDelay-1)._1 == 0 else true,
-              newSnapshots.slice(1,if (snapshots.size < emissionDelay) snapshots.size else emissionDelay) == snapshots.slice(0,if (snapshots.size < emissionDelay) snapshots.size else emissionDelay)
+              if (snapshots.size.toLong >= emissionDelay) snapshots(emissionDelay-1)._1 == 0 else true,
+              newSnapshots.slice(1,if (snapshots.size.toLong < emissionDelay) snapshots.size else emissionDelay) == snapshots.slice(0,if (snapshots.size.toLong < emissionDelay) snapshots.size else emissionDelay)
             ))
           } else {
             true
           }
 
-        val correctSize = newSnapshots.size <= emissionDelay
+        val correctSize = newSnapshots.size.toLong <= emissionDelay
+
+        allOf(Coll(
+          correctNewSnapshot,
+          correctHistoryShift,
+          correctSize
+        ))
       }
+
+      allOf(Coll(
+        correctSnapshotUpdate
+      ))
     } else {
       true
     }
@@ -148,7 +158,7 @@
 
   val validCompound = {
     if (transactionType == COMPOUND) {
-      val compoundOperations  = getVar[Coll[(Coll[Byte], Coll[Byte]])](1).get
+      val compoundOperations  = getVar[Coll[(Coll[Byte], Coll[Byte])]](1).get
       val proof   = getVar[Coll[Byte]](2).get
       val snapshotProof   = getVar[Coll[Byte]](3).get
 
@@ -167,8 +177,8 @@
           val index = keys.indexOf(key,0)
 
           if (currentStakes(index).isDefined) {
-            val snapshotStake = byteArrayToLong(snapshotStakes(index))
-            snapshotStake.toBigInt * emissionAmount.toBigInt / snapshotStaked
+            val snapshotStake = byteArrayToLong(snapshotStakes(index).get)
+            (snapshotStake.toBigInt * emissionAmount.toBigInt / snapshotStaked).toLong
           } else {
             0L
           }
@@ -179,12 +189,12 @@
           val index = keys.indexOf(key,0)
 
           if (currentStakes(index).isDefined) {
-            val currentStake = byteArrayToLong(currentStakes(index))
+            val currentStake = byteArrayToLong(currentStakes(index).get)
             val newStakeAmount = currentStake + rewards(index)
             
             newStakeAmount == byteArrayToLong(compoundOperations(index)._2)
           } else {
-            snapshotStakes(key).isDefined
+            snapshotStakes(index).isDefined
           }
       }
 
@@ -192,11 +202,11 @@
 
       val correctTotalStaked = totalStaked + totalRewards == plasmaStakingOutput.R5[Coll[Long]].get(5)
 
-      val correctSnapshot = snapshots(emissionDelay-1)._2._2.remove(keys, snapshotProof).digest == plasmaStakingOutput.R6[Coll[(Long,(Long,AvlTree))]].get(emissionDelay-1)._2._2.digest
+      val correctSnapshot = snapshots(emissionDelay-1)._2._2.remove(keys, snapshotProof).get.digest == plasmaStakingOutput.R6[Coll[(Long,(Long,AvlTree))]].get(emissionDelay-1)._2._2.digest
 
       val correctStakerCount = snapshots(emissionDelay-1)._1 - keys.size == plasmaStakingOutput.R6[Coll[(Long,(Long,AvlTree))]].get(emissionDelay-1)._1
       
-      val correctNewState = stakeState.update(filteredCompoundOperations, proof).digest == plasmaStakingOutput.R4[AvlTree].get.digest
+      val correctNewState = stakeState.update(filteredCompoundOperations, proof).get.digest == plasmaStakingOutput.R4[AvlTree].get.digest
       
       allOf(Coll(
         validCompounds,
