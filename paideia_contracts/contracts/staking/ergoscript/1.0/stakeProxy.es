@@ -38,8 +38,11 @@
             userOutput.tokens(0)._2 == 1L,
             blake2b256(incentiveOutput.propositionBytes) == stakingIncentiveContract,
             incentiveOutput.value == toStakingIncentive,
+            incentiveOutput.tokens.size == 0,
             txExecutorOutput.value == executorReward,
+            txExecutorOutput.tokens.size == 0,
             minerOutput.value == minerFee,
+            minerOutput.tokens.size == 0,
             OUTPUTS.size == 6
         ))
     } else {

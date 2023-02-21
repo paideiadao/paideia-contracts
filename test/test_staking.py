@@ -271,6 +271,38 @@ class TestStaking:
             traceback.print_exc()
         assert signed
 
+    def test_stake_double_key(self):
+        stakeStateInput = StakeStateBox(
+            appKit=self.appKit,
+            stakeStateContract=self.config.stakeStateContract,
+            checkpoint=1,
+            checkpointTime=int(self.appKit.preHeader().getTimestamp() - 86400001),
+            amountStaked=10000000,
+            cycleDuration=86400000,
+            stakers=10
+            ).inputBox()
+        stakeProxyInput = StakeProxyBox(
+            appKit=self.appKit,
+            stakeProxyContract=self.config.stakeProxyContract,
+            amountToStake=200000,
+            userErgoTree=self.appKit.contractFromAddress(self.txOperator).getErgoTree().bytesHex(),
+            stakeTime=int(time()*1000)
+        ).inputBox()
+
+        with pytest.raises(InterpreterException):
+            stakeTx = StakeTransaction(
+                stakeStateInput=stakeStateInput,
+                stakeProxyInput=stakeProxyInput,
+                stakingConfig=self.config,
+                address=self.txOperator
+            )
+            stakeKey = stakeTx.outputs[2].getTokens().get(0)
+            executorOutput = ErgoBox(self.config.appKit,self.config.proxyExecutorReward,self.config.appKit.contractFromAddress(self.txOperator),{stakeKey.getId().toString(): stakeKey.getValue()}).outBox
+            stakeTx.outputs[4] = executorOutput
+            unsignedTx = stakeTx.unsignedTx
+            self.appKit.signTransaction(unsignedTx)
+            print(ErgoAppKit.unsignedTxToJson(unsignedTx))
+
     def test_add_stake(self):
 
         stakeInput = StakeBox(
