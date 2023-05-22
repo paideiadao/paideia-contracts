@@ -1363,6 +1363,40 @@ def NETAConfig(appKit: ErgoAppKit) -> StakingConfig:
     result.unstakeProxyContract = UnstakeProxyContract(result)
     return result
 
+def AHTConfig(appKit: ErgoAppKit) -> StakingConfig:
+    result = StakingConfig(
+        version = "1.1",
+        appKit = appKit,
+        stakeStateNFT = "4517aed531db665693495fd3544faf75717816509cb0987513d24939977abbb6",
+        stakePoolNFT = "9d90e7567d066263104d1afd13bc23a1a259d733507bf1f33cd02155e7ff0df1",
+        emissionNFT = "dff51ec85263da408181394c72fa6ef3b9c82048e6783c7fea1642cc0472f414",
+        stakeTokenId = "6c6e6ec794585aeeac8d9a211a270caec3d0fce9c352f8df2cc54b2c32217648",
+        stakedTokenId = "18c938e1924fc3eadc266e75ec02d81fe73b56e4e9f4e268dffffcb30387c42d",
+        stakePoolKey = "8511259d53540169a3ee54b062fcca600c3e67ba2f28e8981ba544adde9bbea2",
+        stakedTokenName = "AHT",
+        stakedTokenDecimals = 4,
+        proxyToStakingIncentive = int(1e8),
+        proxyAddToStakingIncentive = int(1e7),
+        proxyExecutorReward = int(2e6),
+        proxyMinerFee = int(2e6),
+        dustCollectionReward = int(5e5),
+        dustCollectionMinerFee = int(1e6),
+        emitReward = int(3e6),
+        emitMinerFee = int(1e6),
+        baseCompoundReward = int(5e5),
+        baseCompoundMinerFee = int(1e6),
+        variableCompoundReward = int(15e4),
+        variableCompoundMinerFee = int(1e5))
+    result.stakeContract = StakeContract(result)
+    result.stakeStateContract = StakeStateContract(result)
+    result.stakePoolContract = StakePoolContract(result)
+    result.emissionContract = EmissionContract(result)
+    result.stakingIncentiveContract = StakingIncentiveContract(result)
+    result.stakeProxyContract = StakeProxyContract(result)
+    result.addStakeProxyContract = AddStakeProxyContract(result)
+    result.unstakeProxyContract = UnstakeProxyContract(result)
+    return result
+
 def BootstrapStaking(appKit: ErgoAppKit, nodeAddress: str, tokenId: str, stakingStart: int, stakingCycleDuration: int, dailyEmission: int, stakePoolSize: int, version: str = "latest") -> StakingConfig:
     res = requests.get(f"{appKit._explorerUrl}/api/v1/tokens/{tokenId}")
     stakedTokenName = res.json()["name"]
